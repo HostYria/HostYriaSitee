@@ -1,6 +1,7 @@
 import {
   users,
   repositories,
+  files,
   environmentVariables,
   paymentMethods,
   balanceRequests,
@@ -10,6 +11,8 @@ import {
   type InsertUser,
   type Repository,
   type InsertRepository,
+  type File,
+  type InsertFile,
   type EnvironmentVariable,
   type InsertEnvironmentVariable,
   type PaymentMethod,
@@ -327,7 +330,7 @@ export class DatabaseStorage implements IStorage {
   async updateBalanceRequestStatus(id: string, status: string, adminNotes?: string): Promise<BalanceRequest | undefined> {
     const [updated] = await db
       .update(balanceRequests)
-      .set({ status, adminNotes })
+      .set({ status })
       .where(eq(balanceRequests.id, id))
       .returning();
 
@@ -364,16 +367,16 @@ export class DatabaseStorage implements IStorage {
 
   async getUnreadNotificationsCount(userId: string): Promise<number> {
     const [result] = await db
-      .select({ count: sql`COUNT(*)` })
+      .select({ count: sql<number>`COUNT(*)` })
       .from(notifications)
       .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
-    return result.count;
+    return Number(result.count);
   }
 
   async markNotificationAsRead(id: string): Promise<Notification | undefined> {
     const [updated] = await db
       .update(notifications)
-      .set({ isRead: true, updatedAt: new Date() })
+      .set({ isRead: true })
       .where(eq(notifications.id, id))
       .returning();
     return updated;
