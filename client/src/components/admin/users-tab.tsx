@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -25,6 +24,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Edit, Eye } from "lucide-react";
 import type { User, Repository } from "@shared/schema";
+import { Badge } from "@/components/ui/badge";
 
 export default function UsersTab() {
   const { toast } = useToast();
@@ -109,7 +109,14 @@ export default function UsersTab() {
               <TableRow key={user.id}>
                 <TableCell className="font-medium">{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
-                <TableCell>${(user.balance || 0).toFixed(2)}</TableCell>
+                <TableCell>
+                    <Badge variant={user.isAdmin ? "default" : "secondary"}>
+                      {user.isAdmin ? "Admin" : "User"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    ${parseFloat(user.balance || '0').toFixed(2)}
+                  </TableCell>
                 <TableCell>
                   {new Date(user.createdAt!).toLocaleDateString()}
                 </TableCell>
