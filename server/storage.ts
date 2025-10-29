@@ -224,6 +224,15 @@ export class DatabaseStorage implements IStorage {
       );
     return user;
   }
+
+  async updateUserAdminStatus(userId: string, isAdmin: boolean): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ isAdmin, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
 }
 
 export const storage = new DatabaseStorage();
