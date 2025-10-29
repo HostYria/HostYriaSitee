@@ -283,9 +283,26 @@ export function SettingsTab({
               )}
             />
 
-            ياً من قائمة Terminal.
+            <FormField
+              control={form.control}
+              name="autoInstallRequirements"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Auto-install Requirements
+                    </FormLabel>
+                    <FormDescription>
+                      Automatically install packages from requirements.txt when starting the application
                     </FormDescription>
                   </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-auto-install"
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
