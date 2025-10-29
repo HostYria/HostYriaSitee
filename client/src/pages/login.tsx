@@ -55,7 +55,7 @@ export default function Login() {
           <div className="flex h-12 w-12 items-center justify-center rounded-md bg-primary">
             <Code className="h-7 w-7 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">Python HostYria</h1>
+          <h1 className="text-2xl font-bold">HostYria</h1>
           <p className="text-sm text-muted-foreground">Sign in to your account</p>
         </div>
 

@@ -35,7 +35,7 @@ export function AppSidebar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
             <Code className="h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-lg font-bold">Python HostYria</span>
+          <span className="text-lg font-bold">HostYria</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -65,7 +65,6 @@ export function AppSidebar() {
         {user && (
           <div className="flex items-center gap-3 px-2">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.profileImageUrl || undefined} className="object-cover" />
               <AvatarFallback>
                 {user.username?.[0] || user.email?.[0] || "U"}
               </AvatarFallback>

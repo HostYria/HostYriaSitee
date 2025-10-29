@@ -11,7 +11,7 @@ export default function Landing() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
               <Code className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold">Python HostYria</span>
+            <span className="text-lg font-bold">HostYria</span>
           </div>
           <Button asChild data-testid="button-login">
             <a href="/login">Sign In</a>
@@ -199,7 +199,7 @@ export default function Landing() {
 
       <footer className="border-t py-8">
         <div className="container px-4 text-center text-sm text-muted-foreground">
-          <p>&copy; 2025 Python HostYria. All rights reserved.</p>
+          <p>&copy; 2025 HostYria. All rights reserved.</p>
         </div>
       </footer>
     </div>
