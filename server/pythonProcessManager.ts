@@ -81,96 +81,18 @@ class PythonProcessManager {
       env[envVar.key] = envVar.value;
     }
 
-    // Install dependencies if requirements.txt exists and autoInstallRequirements is enabled
+    // Check if requirements.txt exists and inform user
     const requirementsFile = files.find((f) => f.name === "requirements.txt" && !f.isDirectory);
-    if (repository.autoInstallRequirements && requirementsFile && requirementsFile.content.trim()) {
-      this.emitLog(repositoryId, "📦 Setting up virtual environment...");
-      
-      try {
-        // Create virtual environment if it doesn't exist
-        const venvPath = path.join(workDir, ".venv");
-        if (!fs.existsSync(venvPath)) {
-          await new Promise<void>((resolve, reject) => {
-            const createVenv = spawn("python3", ["-m", "venv", ".venv"], {
-              cwd: workDir,
-            });
-
-            createVenv.stdout?.on("data", (data) => {
-              this.emitLog(repositoryId, data.toString().trim());
-            });
-
-            createVenv.stderr?.on("data", (data) => {
-              this.emitLog(repositoryId, data.toString().trim());
-            });
-
-            createVenv.on("close", (code) => {
-              if (code !== 0) {
-                reject(new Error(`Failed to create virtual environment (exit code ${code})`));
-              } else {
-                this.emitLog(repositoryId, "✓ Virtual environment created");
-                resolve();
-              }
-            });
-
-            createVenv.on("error", (error) => {
-              reject(error);
-            });
-          });
-        } else {
-          this.emitLog(repositoryId, "✓ Virtual environment already exists");
-        }
-
-        // Install dependencies in virtual environment
-        this.emitLog(repositoryId, "📦 Installing dependencies from requirements.txt...");
-        const pipPath = path.join(venvPath, "bin", "pip");
-        
-        await new Promise<void>((resolve, reject) => {
-          const pipInstall = spawn(pipPath, ["install", "-r", "requirements.txt"], {
-            cwd: workDir,
-          });
-
-          pipInstall.stdout?.on("data", (data) => {
-            this.emitLog(repositoryId, data.toString().trim());
-          });
-
-          pipInstall.stderr?.on("data", (data) => {
-            this.emitLog(repositoryId, data.toString().trim());
-          });
-
-          pipInstall.on("close", (code) => {
-            if (code !== 0) {
-              reject(new Error(`Failed to install dependencies (exit code ${code})`));
-            } else {
-              this.emitLog(repositoryId, "✓ Dependencies installed successfully");
-              resolve();
-            }
-          });
-
-          pipInstall.on("error", (error) => {
-            reject(error);
-          });
-        });
-      } catch (error: any) {
-        this.emitLog(repositoryId, `❌ ${error.message}`);
-        await storage.updateRepositoryById(repositoryId, { status: "error" });
-        throw new Error(`Dependency installation failed: ${error.message}`);
-      }
-    } else if (!repository.autoInstallRequirements && requirementsFile) {
-      this.emitLog(repositoryId, "ℹ️ Auto-install is disabled. Install packages manually from Terminal if needed.");
+    if (requirementsFile && requirementsFile.content.trim()) {
+      this.emitLog(repositoryId, "ℹ️ requirements.txt detected.");
+      this.emitLog(repositoryId, "ℹ️ Please install packages using the 'Packages' tool in Replit.");
+      this.emitLog(repositoryId, "ℹ️ Or use the Terminal tab to run: pip install package_name");
     }
 
     this.emitLog(repositoryId, `🚀 Starting ${repository.mainFile}...`);
     this.emitLog(repositoryId, `Working directory: ${workDir}`);
 
-    // Use virtual environment Python if it exists
-    const venvPythonPath = path.join(workDir, ".venv", "bin", "python3");
-    const pythonCommand = fs.existsSync(venvPythonPath) ? venvPythonPath : "python3";
-    
-    if (fs.existsSync(venvPythonPath)) {
-      this.emitLog(repositoryId, "✓ Using virtual environment Python");
-    }
-
-    const childProcess = spawn(pythonCommand, [repository.mainFile], {
+    const childProcess = spawn("python3", [repository.mainFile], {
       cwd: workDir,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -317,12 +239,7 @@ class PythonProcessManager {
         fs.mkdirSync(workDir, { recursive: true });
       }
 
-      // Use virtual environment pip if it exists
-      const venvPipPath = path.join(workDir, ".venv", "bin", "pip");
-      const pipCommand = fs.existsSync(venvPipPath) ? venvPipPath : "python3";
-      const pipArgs = fs.existsSync(venvPipPath) ? ["install", packageName] : ["-m", "pip", "install", packageName];
-
-      const pipInstall = spawn(pipCommand, pipArgs, {
+      const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", packageName], {
         cwd: workDir,
       });
 

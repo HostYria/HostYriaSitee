@@ -283,28 +283,7 @@ export function SettingsTab({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="autoInstallRequirements"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <input
-                      type="checkbox"
-                      checked={field.value}
-                      onChange={field.onChange}
-                      className="h-4 w-4 rounded border-gray-300"
-                      data-testid="checkbox-auto-install-requirements"
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none mr-3">
-                    <FormLabel className="text-base">
-                      Do you have requirements.txt file?
-                    </FormLabel>
-                    <FormDescription>
-                      عند التفعيل، سيتم تثبيت المكتبات المطلوبة تلقائياً من ملف requirements.txt عند بدء التشغيل.
-                      <br />
-                      عند عدم التفعيل، يجب تثبيت المكتبات يدوياً من قائمة Terminal.
+            ياً من قائمة Terminal.
                     </FormDescription>
                   </div>
                 </FormItem>

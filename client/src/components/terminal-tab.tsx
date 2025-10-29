@@ -188,10 +188,10 @@ export function TerminalTab({ repositoryId, isRunning }: TerminalTabProps) {
           <div className="space-y-2 text-sm">
             <p className="font-semibold text-blue-500">أمثلة على الأوامر المتاحة:</p>
             <div className="space-y-1 text-muted-foreground font-mono">
-              <p>• pip install package_name - لتثبيت مكتبة</p>
+              <p>• pip install --user package_name - لتثبيت مكتبة</p>
               <p>• pip uninstall -y package_name - لإزالة مكتبة</p>
               <p>• pip list - لعرض جميع المكتبات المثبتة</p>
-              <p>• pip freeze &gt; requirements.txt - لحفظ المكتبات</p>
+              <p>• pip freeze &gt; requirements.txt - لحفظ المكتبات (للمرجعية فقط)</p>
               <p>• python --version - لعرض إصدار Python</p>
             </div>
           </div>
