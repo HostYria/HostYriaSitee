@@ -728,6 +728,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.use("/uploads", (req, res, next) => {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    // Set content-type to display images in browser instead of downloading
+    const ext = req.path.split('.').pop()?.toLowerCase();
+    if (ext === 'jpg' || ext === 'jpeg') {
+      res.setHeader("Content-Type", "image/jpeg");
+    } else if (ext === 'png') {
+      res.setHeader("Content-Type", "image/png");
+    } else if (ext === 'gif') {
+      res.setHeader("Content-Type", "image/gif");
+    } else if (ext === 'webp') {
+      res.setHeader("Content-Type", "image/webp");
+    } else {
+      // For files without extension, try to detect from content
+      res.setHeader("Content-Type", "image/jpeg");
+    }
+    res.setHeader("Content-Disposition", "inline");
     next();
   });
   app.use("/uploads", express.static(uploadDir));

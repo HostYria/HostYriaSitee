@@ -331,7 +331,7 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(users)
       .set({ 
-        balance: sql`${users.balance} + ${amount.toString()}`,
+        balance: sql`(CAST(${users.balance} AS NUMERIC) + ${amount})::TEXT`,
         updatedAt: new Date() 
       })
       .where(eq(users.id, userId))
