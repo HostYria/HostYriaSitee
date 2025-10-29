@@ -84,11 +84,48 @@ class PythonProcessManager {
     // Install dependencies if requirements.txt exists and autoInstallRequirements is enabled
     const requirementsFile = files.find((f) => f.name === "requirements.txt" && !f.isDirectory);
     if (repository.autoInstallRequirements && requirementsFile && requirementsFile.content.trim()) {
-      this.emitLog(repositoryId, "📦 Installing dependencies from requirements.txt...");
+      this.emitLog(repositoryId, "📦 Setting up virtual environment...");
       
       try {
+        // Create virtual environment if it doesn't exist
+        const venvPath = path.join(workDir, ".venv");
+        if (!fs.existsSync(venvPath)) {
+          await new Promise<void>((resolve, reject) => {
+            const createVenv = spawn("python3", ["-m", "venv", ".venv"], {
+              cwd: workDir,
+            });
+
+            createVenv.stdout?.on("data", (data) => {
+              this.emitLog(repositoryId, data.toString().trim());
+            });
+
+            createVenv.stderr?.on("data", (data) => {
+              this.emitLog(repositoryId, data.toString().trim());
+            });
+
+            createVenv.on("close", (code) => {
+              if (code !== 0) {
+                reject(new Error(`Failed to create virtual environment (exit code ${code})`));
+              } else {
+                this.emitLog(repositoryId, "✓ Virtual environment created");
+                resolve();
+              }
+            });
+
+            createVenv.on("error", (error) => {
+              reject(error);
+            });
+          });
+        } else {
+          this.emitLog(repositoryId, "✓ Virtual environment already exists");
+        }
+
+        // Install dependencies in virtual environment
+        this.emitLog(repositoryId, "📦 Installing dependencies from requirements.txt...");
+        const pipPath = path.join(venvPath, "bin", "pip");
+        
         await new Promise<void>((resolve, reject) => {
-          const pipInstall = spawn("python3", ["-m", "pip", "install", "-r", "requirements.txt"], {
+          const pipInstall = spawn(pipPath, ["install", "-r", "requirements.txt"], {
             cwd: workDir,
           });
 
@@ -125,7 +162,15 @@ class PythonProcessManager {
     this.emitLog(repositoryId, `🚀 Starting ${repository.mainFile}...`);
     this.emitLog(repositoryId, `Working directory: ${workDir}`);
 
-    const childProcess = spawn("python3", [repository.mainFile], {
+    // Use virtual environment Python if it exists
+    const venvPythonPath = path.join(workDir, ".venv", "bin", "python3");
+    const pythonCommand = fs.existsSync(venvPythonPath) ? venvPythonPath : "python3";
+    
+    if (fs.existsSync(venvPythonPath)) {
+      this.emitLog(repositoryId, "✓ Using virtual environment Python");
+    }
+
+    const childProcess = spawn(pythonCommand, [repository.mainFile], {
       cwd: workDir,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -272,7 +317,12 @@ class PythonProcessManager {
         fs.mkdirSync(workDir, { recursive: true });
       }
 
-      const pipInstall = spawn("python3", ["-m", "pip", "install", packageName], {
+      // Use virtual environment pip if it exists
+      const venvPipPath = path.join(workDir, ".venv", "bin", "pip");
+      const pipCommand = fs.existsSync(venvPipPath) ? venvPipPath : "python3";
+      const pipArgs = fs.existsSync(venvPipPath) ? ["install", packageName] : ["-m", "pip", "install", packageName];
+
+      const pipInstall = spawn(pipCommand, pipArgs, {
         cwd: workDir,
       });
 
@@ -305,7 +355,12 @@ class PythonProcessManager {
     return new Promise((resolve, reject) => {
       const workDir = path.join(process.cwd(), "runtime", repositoryId);
 
-      const pipUninstall = spawn("python3", ["-m", "pip", "uninstall", "-y", packageName], {
+      // Use virtual environment pip if it exists
+      const venvPipPath = path.join(workDir, ".venv", "bin", "pip");
+      const pipCommand = fs.existsSync(venvPipPath) ? venvPipPath : "python3";
+      const pipArgs = fs.existsSync(venvPipPath) ? ["uninstall", "-y", packageName] : ["-m", "pip", "uninstall", "-y", packageName];
+
+      const pipUninstall = spawn(pipCommand, pipArgs, {
         cwd: workDir,
       });
 
