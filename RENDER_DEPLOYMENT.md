@@ -32,6 +32,7 @@
 | `DATABASE_URL` | رابط قاعدة البيانات PostgreSQL | ✅ نعم |
 | `SESSION_SECRET` | مفتاح سري للجلسات (يُنشأ تلقائياً) | ✅ نعم |
 | `NODE_ENV` | البيئة (production) | ✅ نعم |
+| `NPM_CONFIG_PRODUCTION` | يُعيّن على `false` لتثبيت dev dependencies | ✅ نعم |
 
 #### كيفية إضافة المتغيرات:
 
@@ -98,6 +99,12 @@
 
 ### خطأ في البناء (Build Error)
 
+#### خطأ "vite: not found" أو "esbuild: not found"
+هذا الخطأ يحدث عندما لا يتم تثبيت devDependencies. الحل:
+- تأكد من إضافة متغير `NPM_CONFIG_PRODUCTION=false` في Environment
+- أو في ملف `render.yaml` تأكد من وجود هذا المتغير
+
+#### مشاكل أخرى
 1. تحقق من سجلات البناء في Render
 2. تأكد من تثبيت جميع الحزم في `package.json`
 3. جرب البناء محلياً: `npm run build`
@@ -158,6 +165,7 @@ Required variables:
 | `DATABASE_URL` | PostgreSQL connection string | ✅ Yes |
 | `SESSION_SECRET` | Secret key for sessions (auto-generated) | ✅ Yes |
 | `NODE_ENV` | Environment (production) | ✅ Yes |
+| `NPM_CONFIG_PRODUCTION` | Set to `false` to install dev dependencies | ✅ Yes |
 
 ### 4. Database Setup
 

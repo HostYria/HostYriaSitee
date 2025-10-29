@@ -39,6 +39,7 @@ Response: { status: "ok", timestamp: "2025-10-29T..." }
 | `HOSTYRIA_BOT_TOKEN` | رمز Telegram Bot | Telegram Bot token | ❌ |
 | `SESSION_SECRET` | مفتاح سري للجلسات | Session secret key | ✅ |
 | `NODE_ENV` | بيئة التشغيل | Environment mode | ❌ |
+| `NPM_CONFIG_PRODUCTION` | `false` لتثبيت dev dependencies | Set to `false` for dev dependencies | ❌ |
 
 ## الميزات الجاهزة للإنتاج | Production-Ready Features
 
@@ -97,6 +98,17 @@ git push origin main
 - 💰 خطة Starter: $7/شهر
 - ⚡ دائماً نشط (24/7)
 - 🚀 أداء أفضل
+
+## حل المشاكل الشائعة | Common Issues
+
+### ❌ خطأ "vite: not found" أثناء البناء
+**السبب**: Render لا يثبت devDependencies افتراضياً
+
+**الحل**: المتغير `NPM_CONFIG_PRODUCTION=false` مُضاف في `render.yaml` لحل هذه المشكلة تلقائياً
+
+إذا استمرت المشكلة، تأكد من:
+- وجود المتغير في Environment Variables على Render
+- أمر البناء: `npm ci && npm run build`
 
 ## الدعم | Support
 
