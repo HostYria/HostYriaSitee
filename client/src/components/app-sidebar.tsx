@@ -133,12 +133,27 @@ export function AppSidebar() {
             </div>
           </>
         )}
-        <form action="/api/auth/logout" method="POST" className="w-full">
-          <Button variant="outline" className="w-full" type="submit" data-testid="button-logout">
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
-        </form>
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={async () => {
+            try {
+              const response = await fetch("/api/auth/logout", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              if (response.ok) {
+                window.location.href = "/login";
+              }
+            } catch (error) {
+              console.error("Logout error:", error);
+            }
+          }}
+          data-testid="button-logout"
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Sign Out
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
