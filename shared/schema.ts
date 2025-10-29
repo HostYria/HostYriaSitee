@@ -42,7 +42,7 @@ export type InsertUser = typeof users.$inferInsert;
 // Repositories table
 export const repositories = pgTable("repositories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
   mainFile: varchar("main_file", { length: 255 }),
