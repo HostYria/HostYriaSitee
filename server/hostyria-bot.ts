@@ -6,13 +6,19 @@ import bcrypt from 'bcrypt';
 import { pythonProcessManager } from './pythonProcessManager';
 
 const BOT_TOKEN = process.env.HOSTYRIA_BOT_TOKEN;
+const ENABLE_BOT = process.env.ENABLE_TELEGRAM_BOT !== 'false';
 
 if (!BOT_TOKEN) {
   console.error('HOSTYRIA_BOT_TOKEN environment variable is not set');
   process.exit(1);
 }
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(BOT_TOKEN, { polling: ENABLE_BOT });
+
+if (!ENABLE_BOT) {
+  console.log('⚠️  Telegram Bot polling is DISABLED (ENABLE_TELEGRAM_BOT=false)');
+  console.log('   The bot will not respond to messages until enabled.');
+}
 
 // Store user sessions (telegram_id -> user data)
 const userSessions = new Map<number, { userId: string; email: string; username: string }>();
@@ -39,8 +45,10 @@ async function loadSessionsFromDatabase() {
   }
 }
 
-// Call on startup
-loadSessionsFromDatabase();
+// Call on startup only if bot is enabled
+if (ENABLE_BOT) {
+  loadSessionsFromDatabase();
+}
 
 // Welcome message with login
 async function sendWelcomeMessage(chatId: number) {
@@ -430,6 +438,10 @@ bot.on('message', async (msg) => {
   }
 });
 
-console.log('HostYria Bot started successfully! 🚀');
+if (ENABLE_BOT) {
+  console.log('HostYria Bot started successfully! 🚀');
+} else {
+  console.log('HostYria Bot initialized (polling disabled)');
+}
 
 export default bot;
