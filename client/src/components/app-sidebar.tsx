@@ -127,7 +127,7 @@ export function AppSidebar() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">Balance</span>
                 <span className="text-lg font-bold text-primary">
-                  ${(user.balance || 0).toFixed(2)}
+                  ${parseFloat(user.balance || '0').toFixed(2)}
                 </span>
               </div>
             </div>
