@@ -34,6 +34,7 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   balance: integer("balance").notNull().default(0),
   isAdmin: boolean("is_admin").notNull().default(false),
+  telegramUsername: text("telegram_username"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
