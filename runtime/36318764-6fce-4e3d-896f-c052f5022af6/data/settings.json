@@ -1,0 +1,21 @@
+{
+  "support_username": "Ahmad_A11SS",
+  "syriatel_address": "84106770",
+  "shamcash_address": "0000",
+  "bot_enabled": true,
+  "charge_codes": {},
+  "payment_services": {},
+  "agents": {},
+  "withdrawal_fees": 0,
+  "bot_name": "Syria Cash Store 🛒",
+  "bot_name_english": "Syria Cash Store 🛒",
+  "referral_enabled": true,
+  "referral_level_1_percentage": 1.0,
+  "referral_level_2_percentage": 0.5,
+  "next_referral_id": 502,
+  "show_referral_button": true,
+  "shamcash_data": {
+    "address": "6643bguy4",
+    "exchange_rate": 1500
+  }
+}

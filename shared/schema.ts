@@ -36,6 +36,7 @@ export const users = pgTable("users", {
   balance: text("balance").notNull().default("0"),
   isAdmin: boolean("is_admin").notNull().default(false),
   telegramUsername: text("telegram_username"),
+  telegramChatId: text("telegram_chat_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

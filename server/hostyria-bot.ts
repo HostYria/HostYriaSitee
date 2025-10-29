@@ -1,8 +1,9 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db';
 import { users, repositories } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, isNotNull } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
+import { pythonProcessManager } from './pythonProcessManager';
 
 const BOT_TOKEN = process.env.HOSTYRIA_BOT_TOKEN;
 
@@ -16,6 +17,29 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 // Store user sessions (telegram_id -> user data)
 const userSessions = new Map<number, { userId: string; email: string; username: string }>();
 const loginStates = new Map<number, { step: 'email' | 'password'; email?: string }>();
+
+// Load sessions from database on startup
+async function loadSessionsFromDatabase() {
+  try {
+    const usersWithTelegram = await db.select().from(users).where(isNotNull(users.telegramChatId));
+    for (const user of usersWithTelegram) {
+      if (user.telegramChatId) {
+        const chatId = parseInt(user.telegramChatId);
+        userSessions.set(chatId, {
+          userId: user.id,
+          email: user.email,
+          username: user.username
+        });
+      }
+    }
+    console.log(`Loaded ${userSessions.size} Telegram sessions from database`);
+  } catch (error) {
+    console.error('Error loading Telegram sessions:', error);
+  }
+}
+
+// Call on startup
+loadSessionsFromDatabase();
 
 // Welcome message with login
 function sendWelcomeMessage(chatId: number) {
@@ -151,6 +175,13 @@ bot.on('callback_query', async (query) => {
   } else if (data === 'back_to_dashboard') {
     await sendDashboard(chatId);
   } else if (data === 'logout') {
+    const session = userSessions.get(chatId);
+    if (session) {
+      // Remove telegramChatId from database
+      await db.update(users)
+        .set({ telegramChatId: null })
+        .where(eq(users.id, session.userId));
+    }
     userSessions.delete(chatId);
     loginStates.delete(chatId);
     bot.sendMessage(chatId, 'You have been logged out successfully.');
@@ -177,13 +208,26 @@ bot.on('callback_query', async (query) => {
       return;
     }
 
-    const newStatus = action === 'start' ? 'running' : 'stopped';
-    await db.update(repositories)
-      .set({ status: newStatus })
-      .where(eq(repositories.id, repoId));
-
-    bot.sendMessage(chatId, `Repository ${action === 'start' ? 'started' : 'stopped'} successfully!`);
-    await showRepositoryDetails(chatId, repoId);
+    try {
+      if (action === 'start') {
+        bot.sendMessage(chatId, '⏳ Starting repository...');
+        await pythonProcessManager.startRepository(repoId);
+        bot.sendMessage(chatId, '✅ Repository started successfully!');
+      } else {
+        bot.sendMessage(chatId, '⏳ Stopping repository...');
+        if (pythonProcessManager.isRunning(repoId)) {
+          pythonProcessManager.stopRepository(repoId);
+        } else {
+          await db.update(repositories)
+            .set({ status: 'stopped' })
+            .where(eq(repositories.id, repoId));
+        }
+        bot.sendMessage(chatId, '⏹️ Repository stopped successfully!');
+      }
+      await showRepositoryDetails(chatId, repoId);
+    } catch (error: any) {
+      bot.sendMessage(chatId, `❌ Error: ${error.message || 'Failed to ' + action + ' repository'}`);
+    }
   }
 });
 
@@ -228,13 +272,18 @@ bot.on('message', async (msg) => {
       return;
     }
 
-    // Login successful
+    // Login successful - save session in memory and database
     userSessions.set(chatId, {
       userId: user.id,
       email: user.email,
       username: user.username
     });
     loginStates.delete(chatId);
+
+    // Save telegramChatId to database
+    await db.update(users)
+      .set({ telegramChatId: chatId.toString() })
+      .where(eq(users.id, user.id));
 
     await sendDashboard(chatId);
   }
