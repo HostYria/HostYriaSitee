@@ -63,19 +63,29 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-4 space-y-4">
         {user && (
-          <div className="flex items-center gap-3 px-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>
-                {user.username?.[0] || user.email?.[0] || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col">
-              <span className="font-medium">
-                {user.username}
-              </span>
-              <span className="text-sm text-muted-foreground">{user.email}</span>
+          <>
+            <div className="flex items-center gap-3 px-2">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback>
+                  {user.username?.[0] || user.email?.[0] || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col flex-1">
+                <span className="font-medium">
+                  {user.username}
+                </span>
+                <span className="text-sm text-muted-foreground">{user.email}</span>
+              </div>
             </div>
-          </div>
+            <div className="px-2 py-3 bg-primary/10 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Balance</span>
+                <span className="text-lg font-bold text-primary">
+                  ${(user.balance || 0).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </>
         )}
         <Button variant="outline" className="w-full" asChild data-testid="button-logout">
           <a href="/api/logout">

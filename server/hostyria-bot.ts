@@ -56,7 +56,8 @@ async function sendDashboard(chatId: number) {
     return;
   }
   
-  const dashboardText = `Welcome ${session.username} in HostYria manager:\n\nYour Email: ${session.email}\nBalance: $${user.balance || 0}`;
+  const balance = user.balance || 0;
+  const dashboardText = `Welcome ${session.username} in HostYria manager:\n\nYour Email: ${session.email}\nBalance: $${balance.toFixed(2)}`;
   
   const keyboard = {
     inline_keyboard: [
