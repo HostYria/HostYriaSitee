@@ -7,6 +7,7 @@ import { isAuthenticated, hashPassword, verifyPassword } from "./auth";
 import { pythonProcessManager } from "./pythonProcessManager";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
+import AdmZip from "adm-zip";
 import {
   insertRepositorySchema,
   insertFileSchema,
@@ -388,7 +389,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { zipContent, targetPath } = req.body;
-      const AdmZip = require('adm-zip');
       const zip = new AdmZip(Buffer.from(zipContent, 'base64'));
       const zipEntries = zip.getEntries();
       
