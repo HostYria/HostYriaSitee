@@ -1,7 +1,7 @@
 
 import TelegramBot from 'node-telegram-bot-api';
 import { db } from './db';
-import { users, repositories } from '@db/schema';
+import { users, repositories } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcrypt';
 
