@@ -11,30 +11,26 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Check, X } from "lucide-react";
+import { Loader2, Check, X, ExternalLink } from "lucide-react";
+import type { BalanceRequest, PaymentMethod } from "@shared/schema";
 
-interface BalanceRequest {
-  id: string;
-  userId: string;
-  amount: number;
-  paymentMethodId: string;
-  proofImageUrl: string;
-  status: string;
-  createdAt: Date;
+interface ExtendedBalanceRequest extends BalanceRequest {
   user?: {
     username: string;
     email: string;
   };
-  paymentMethod?: {
-    name: string;
-  };
+  paymentMethod?: PaymentMethod;
 }
 
 export default function BalanceRequestsTab() {
   const { toast } = useToast();
 
-  const { data: requests = [], isLoading } = useQuery<BalanceRequest[]>({
+  const { data: requests = [], isLoading } = useQuery<ExtendedBalanceRequest[]>({
     queryKey: ["/api/balance-requests"],
+  });
+
+  const { data: paymentMethods = [] } = useQuery<PaymentMethod[]>({
+    queryKey: ["/api/payment-methods"],
   });
 
   const updateStatusMutation = useMutation({
@@ -51,6 +47,18 @@ export default function BalanceRequestsTab() {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     },
   });
+
+  const getPaymentMethodById = (id: string) => {
+    return paymentMethods.find((m) => m.id === id);
+  };
+
+  const calculateUsdAmount = (request: ExtendedBalanceRequest) => {
+    const method = getPaymentMethodById(request.paymentMethodId);
+    if (!method) return "0.00";
+    const amountSent = parseFloat(request.amountSent);
+    const usdRate = parseFloat(method.usdRate);
+    return (amountSent / usdRate).toFixed(2);
+  };
 
   if (isLoading) {
     return (
@@ -74,92 +82,124 @@ export default function BalanceRequestsTab() {
           No balance requests yet.
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>User</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Payment Method</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {requests.map((request) => (
-              <TableRow key={request.id}>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{request.user?.username}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {request.user?.email}
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell className="font-medium">${request.amount.toFixed(2)}</TableCell>
-                <TableCell>{request.paymentMethod?.name}</TableCell>
-                <TableCell>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs ${
-                      request.status === "approved"
-                        ? "bg-green-100 text-green-700"
-                        : request.status === "rejected"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {request.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  {new Date(request.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  {request.status === "pending" && (
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          window.open(request.proofImageUrl, "_blank")
-                        }
-                        data-testid={`button-view-proof-${request.id}`}
-                      >
-                        View Proof
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          updateStatusMutation.mutate({
-                            id: request.id,
-                            status: "approved",
-                          })
-                        }
-                        data-testid={`button-approve-${request.id}`}
-                      >
-                        <Check className="h-4 w-4 text-green-600" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          updateStatusMutation.mutate({
-                            id: request.id,
-                            status: "rejected",
-                          })
-                        }
-                        data-testid={`button-reject-${request.id}`}
-                      >
-                        <X className="h-4 w-4 text-red-600" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>User</TableHead>
+                <TableHead>Amount Sent</TableHead>
+                <TableHead>USD Value</TableHead>
+                <TableHead>Payment Method</TableHead>
+                <TableHead>Transaction ID</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {requests.map((request) => {
+                const method = getPaymentMethodById(request.paymentMethodId);
+                return (
+                  <TableRow key={request.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{request.user?.username || "Unknown"}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {request.user?.email || ""}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {request.amountSent} {method?.currency || ""}
+                    </TableCell>
+                    <TableCell className="font-medium text-green-600 dark:text-green-400">
+                      ${calculateUsdAmount(request)} USD
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {method?.imageUrl && (
+                          <img
+                            src={method.imageUrl}
+                            alt={method.name}
+                            className="h-6 w-6 object-contain"
+                          />
+                        )}
+                        {method?.name || "Unknown"}
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
+                      {request.transactionId}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          request.status === "approved"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                            : request.status === "rejected"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                            : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300"
+                        }`}
+                        data-testid={`status-request-${request.id}`}
+                      >
+                        {request.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(request.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex gap-2 justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(request.screenshotUrl, "_blank")}
+                          data-testid={`button-view-proof-${request.id}`}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        {request.status === "pending" && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  id: request.id,
+                                  status: "approved",
+                                })
+                              }
+                              disabled={updateStatusMutation.isPending}
+                              data-testid={`button-approve-${request.id}`}
+                              className="text-green-600 hover:text-green-700 dark:text-green-400"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() =>
+                                updateStatusMutation.mutate({
+                                  id: request.id,
+                                  status: "rejected",
+                                })
+                              }
+                              disabled={updateStatusMutation.isPending}
+                              data-testid={`button-reject-${request.id}`}
+                              className="text-red-600 hover:text-red-700 dark:text-red-400"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </Card>
   );

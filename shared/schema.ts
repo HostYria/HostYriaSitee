@@ -10,6 +10,7 @@ import {
   integer,
   boolean,
   uuid,
+  numeric,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -32,7 +33,7 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
-  balance: integer("balance").notNull().default(0),
+  balance: numeric("balance", { precision: 12, scale: 2 }).notNull().default("0"),
   isAdmin: boolean("is_admin").notNull().default(false),
   telegramUsername: text("telegram_username"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -49,7 +50,7 @@ export const paymentMethods = pgTable("payment_methods", {
   imageUrl: text("image_url").notNull(),
   instructions: text("instructions").notNull(),
   currency: text("currency").notNull(),
-  usdRate: integer("usd_rate").notNull(),
+  usdRate: numeric("usd_rate", { precision: 12, scale: 4 }).notNull(),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -62,7 +63,7 @@ export const balanceRequests = pgTable("balance_requests", {
   id: uuid("id").defaultRandom().primaryKey(),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   paymentMethodId: uuid("payment_method_id").notNull().references(() => paymentMethods.id),
-  amountSent: integer("amount_sent").notNull(),
+  amountSent: numeric("amount_sent", { precision: 12, scale: 2 }).notNull(),
   transactionId: text("transaction_id").notNull(),
   screenshotUrl: text("screenshot_url").notNull(),
   status: text("status").notNull().default("pending"),

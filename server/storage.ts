@@ -3,21 +3,27 @@ import {
   repositories,
   files,
   environmentVariables,
+  paymentMethods,
+  balanceRequests,
   type User,
-  type UpsertUser,
+  type InsertUser,
   type Repository,
   type InsertRepository,
   type File,
   type InsertFile,
   type EnvironmentVariable,
   type InsertEnvironmentVariable,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type BalanceRequest,
+  type InsertBalanceRequest,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  upsertUser(user: InsertUser): Promise<User>;
 
   getRepositories(userId: string): Promise<Repository[]>;
   getRepository(id: string, userId: string): Promise<Repository | undefined>;
@@ -35,6 +41,19 @@ export interface IStorage {
 
   getEnvironmentVariables(repositoryId: string): Promise<EnvironmentVariable[]>;
   setEnvironmentVariables(repositoryId: string, vars: Array<{ key: string; value: string }>): Promise<void>;
+
+  getPaymentMethods(): Promise<PaymentMethod[]>;
+  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  createPaymentMethod(data: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: string, data: Partial<Omit<PaymentMethod, 'id' | 'createdAt'>>): Promise<PaymentMethod | undefined>;
+  deletePaymentMethod(id: string): Promise<boolean>;
+
+  getBalanceRequests(): Promise<BalanceRequest[]>;
+  getBalanceRequest(id: string): Promise<BalanceRequest | undefined>;
+  getUserBalanceRequests(userId: string): Promise<BalanceRequest[]>;
+  createBalanceRequest(data: Omit<InsertBalanceRequest, 'id' | 'createdAt' | 'status'>): Promise<BalanceRequest>;
+  updateBalanceRequestStatus(id: string, status: string, adminNotes?: string): Promise<BalanceRequest | undefined>;
+  updateUserBalance(userId: string, amount: number): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -43,7 +62,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async upsertUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
@@ -197,10 +216,10 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createUser(username: string, email: string, password: string) {
+  async createUser(username: string, email: string, password: string, isAdmin: boolean = false) {
     const [user] = await db
       .insert(users)
-      .values({ username, email, password })
+      .values({ username, email, password, isAdmin })
       .returning();
     return user;
   }
@@ -229,6 +248,80 @@ export class DatabaseStorage implements IStorage {
     const [updated] = await db
       .update(users)
       .set({ isAdmin, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  async getPaymentMethods(): Promise<PaymentMethod[]> {
+    return await db.select().from(paymentMethods).orderBy(paymentMethods.createdAt);
+  }
+
+  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
+    const [method] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
+    return method;
+  }
+
+  async createPaymentMethod(data: InsertPaymentMethod): Promise<PaymentMethod> {
+    const [created] = await db.insert(paymentMethods).values(data).returning();
+    return created;
+  }
+
+  async updatePaymentMethod(id: string, data: Partial<Omit<PaymentMethod, 'id' | 'createdAt'>>): Promise<PaymentMethod | undefined> {
+    const [updated] = await db
+      .update(paymentMethods)
+      .set(data)
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePaymentMethod(id: string): Promise<boolean> {
+    const result = await db.delete(paymentMethods).where(eq(paymentMethods.id, id));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
+  async getBalanceRequests(): Promise<BalanceRequest[]> {
+    return await db.select().from(balanceRequests).orderBy(balanceRequests.createdAt);
+  }
+
+  async getBalanceRequest(id: string): Promise<BalanceRequest | undefined> {
+    const [request] = await db.select().from(balanceRequests).where(eq(balanceRequests.id, id));
+    return request;
+  }
+
+  async getUserBalanceRequests(userId: string): Promise<BalanceRequest[]> {
+    return await db.select().from(balanceRequests).where(eq(balanceRequests.userId, userId)).orderBy(balanceRequests.createdAt);
+  }
+
+  async createBalanceRequest(data: Omit<InsertBalanceRequest, 'id' | 'createdAt' | 'status'>): Promise<BalanceRequest> {
+    const [created] = await db.insert(balanceRequests).values(data).returning();
+    return created;
+  }
+
+  async updateBalanceRequestStatus(id: string, status: string): Promise<BalanceRequest | undefined> {
+    const [updated] = await db
+      .update(balanceRequests)
+      .set({ status })
+      .where(eq(balanceRequests.id, id))
+      .returning();
+    
+    if (updated && status === 'approved') {
+      const request = updated;
+      const amountInUsd = parseFloat(request.amountSent);
+      await this.updateUserBalance(request.userId, amountInUsd);
+    }
+    
+    return updated;
+  }
+
+  async updateUserBalance(userId: string, amount: number): Promise<User | undefined> {
+    const [updated] = await db
+      .update(users)
+      .set({ 
+        balance: sql`${users.balance} + ${amount.toString()}`,
+        updatedAt: new Date() 
+      })
       .where(eq(users.id, userId))
       .returning();
     return updated;

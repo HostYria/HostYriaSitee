@@ -20,6 +20,16 @@ import { eq } from "drizzle-orm";
 import { db } from "./db";
 import { users } from "@shared/schema";
 import bcrypt from "bcrypt";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+const uploadDir = path.join(process.cwd(), "attached_assets", "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({ dest: uploadDir });
 
 
 function getSession() {
@@ -534,6 +544,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: error.message || "Failed to update environment variables" });
     }
   });
+
+  app.get("/api/payment-methods", async (_req, res) => {
+    try {
+      const methods = await storage.getPaymentMethods();
+      res.json(methods);
+    } catch (error) {
+      console.error("Error fetching payment methods:", error);
+      res.status(500).json({ message: "Failed to fetch payment methods" });
+    }
+  });
+
+  app.post("/api/payment-methods", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const method = await storage.createPaymentMethod(req.body);
+      res.json(method);
+    } catch (error: any) {
+      console.error("Error creating payment method:", error);
+      res.status(400).json({ message: error.message || "Failed to create payment method" });
+    }
+  });
+
+  app.patch("/api/payment-methods/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const method = await storage.updatePaymentMethod(req.params.id, req.body);
+      if (!method) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      res.json(method);
+    } catch (error: any) {
+      console.error("Error updating payment method:", error);
+      res.status(400).json({ message: error.message || "Failed to update payment method" });
+    }
+  });
+
+  app.delete("/api/payment-methods/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const deleted = await storage.deletePaymentMethod(req.params.id);
+      if (!deleted) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+      res.json({ message: "Payment method deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting payment method:", error);
+      res.status(500).json({ message: error.message || "Failed to delete payment method" });
+    }
+  });
+
+  app.get("/api/balance-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const requests = user.isAdmin
+        ? await storage.getBalanceRequests()
+        : await storage.getUserBalanceRequests(req.session.userId);
+
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching balance requests:", error);
+      res.status(500).json({ message: "Failed to fetch balance requests" });
+    }
+  });
+
+  app.post("/api/balance-requests", isAuthenticated, upload.single("screenshot"), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "Screenshot is required" });
+      }
+
+      const screenshotUrl = `/uploads/${req.file.filename}`;
+      const balanceRequest = await storage.createBalanceRequest({
+        userId: req.session.userId,
+        paymentMethodId: req.body.paymentMethodId,
+        amountSent: req.body.amountSent.toString(),
+        transactionId: req.body.transactionId,
+        screenshotUrl,
+      });
+
+      res.json(balanceRequest);
+    } catch (error: any) {
+      console.error("Error creating balance request:", error);
+      res.status(400).json({ message: error.message || "Failed to create balance request" });
+    }
+  });
+
+  app.patch("/api/balance-requests/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { status } = req.body;
+      if (!["approved", "rejected"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+
+      const request = await storage.updateBalanceRequestStatus(req.params.id, status);
+      if (!request) {
+        return res.status(404).json({ message: "Balance request not found" });
+      }
+
+      res.json(request);
+    } catch (error: any) {
+      console.error("Error updating balance request status:", error);
+      res.status(400).json({ message: error.message || "Failed to update balance request status" });
+    }
+  });
+
+  app.use("/uploads", (req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  });
+  app.use("/uploads", require("express").static(uploadDir));
 
   const httpServer = createServer(app);
 
