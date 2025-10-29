@@ -12,6 +12,9 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Repositories from "@/pages/repositories";
 import RepositoryDetail from "@/pages/repository-detail";
+import Account from "@/pages/account";
+import Support from "@/pages/support";
+import TopUp from "@/pages/top-up";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +31,9 @@ function Router() {
         <>
           <Route path="/repositories" component={Repositories} />
           <Route path="/repositories/:id" component={RepositoryDetail} />
+          <Route path="/account" component={Account} />
+          <Route path="/support" component={Support} />
+          <Route path="/top-up" component={TopUp} />
           <Route path="/" component={Repositories} />
         </>
       )}
