@@ -730,7 +730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   });
-  app.use("/uploads", require("express").static(uploadDir));
+  app.use("/uploads", express.static(uploadDir));
 
   const httpServer = createServer(app);
 
