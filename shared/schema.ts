@@ -32,12 +32,56 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
+  balance: integer("balance").notNull().default(0),
+  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
+
+// Payment Methods table
+export const paymentMethods = pgTable("payment_methods", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull(),
+  instructions: text("instructions").notNull(),
+  currency: text("currency").notNull(),
+  usdRate: integer("usd_rate").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = typeof paymentMethods.$inferInsert;
+
+// Balance Requests table
+export const balanceRequests = pgTable("balance_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  paymentMethodId: uuid("payment_method_id").notNull().references(() => paymentMethods.id),
+  amountSent: integer("amount_sent").notNull(),
+  transactionId: text("transaction_id").notNull(),
+  screenshotUrl: text("screenshot_url").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type BalanceRequest = typeof balanceRequests.$inferSelect;
+export type InsertBalanceRequest = typeof balanceRequests.$inferInsert;
+
+// Support Messages table
+export const supportMessages = pgTable("support_messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  message: text("message").notNull(),
+  isFromUser: boolean("is_from_user").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type SupportMessage = typeof supportMessages.$inferSelect;
+export type InsertSupportMessage = typeof supportMessages.$inferInsert;
 
 // Repositories table
 export const repositories = pgTable("repositories", {

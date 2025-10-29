@@ -1,4 +1,4 @@
-import { Folder, Settings, LogOut, Code } from "lucide-react";
+import { Folder, User, DollarSign, MessageSquare, LogOut, Code, Shield } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -26,7 +26,30 @@ export function AppSidebar() {
       url: "/repositories",
       icon: Folder,
     },
+    {
+      title: "Account",
+      url: "/account",
+      icon: User,
+    },
+    {
+      title: "Top Up Balance",
+      url: "/top-up",
+      icon: DollarSign,
+    },
+    {
+      title: "Support",
+      url: "/support",
+      icon: MessageSquare,
+    },
   ];
+
+  const adminMenuItems = user?.isAdmin ? [
+    {
+      title: "Admin Panel",
+      url: "/admin",
+      icon: Shield,
+    },
+  ] : [];
 
   return (
     <Sidebar>
@@ -60,6 +83,29 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {adminMenuItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administration</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminMenuItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === item.url}
+                      data-testid={`link-${item.title.toLowerCase()}`}
+                    >
+                      <Link href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="p-4 space-y-4">
         {user && (
