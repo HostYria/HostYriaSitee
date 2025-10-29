@@ -155,7 +155,11 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
 // Handle /start command
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
-  sendWelcomeMessage(chatId);
+  if (userSessions.has(chatId)) {
+    sendDashboard(chatId);
+  } else {
+    sendWelcomeMessage(chatId);
+  }
 });
 
 // Handle callback queries
