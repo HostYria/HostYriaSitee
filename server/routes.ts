@@ -58,6 +58,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.set("trust proxy", 1);
   app.use(getSession());
 
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   app.post("/api/auth/register", async (req, res) => {
     try {
       const data = registerSchema.parse(req.body);
