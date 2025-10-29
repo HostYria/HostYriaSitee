@@ -24,7 +24,18 @@ export default function TopUp() {
 
   const submitRequestMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return await apiRequest("POST", "/api/balance-requests", formData);
+      const response = await fetch("/api/balance-requests", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit request");
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -35,6 +46,7 @@ export default function TopUp() {
       setAmountSent("");
       setTransactionId("");
       setScreenshot(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/balance-requests"] });
     },
     onError: (error: Error) => {
       toast({
@@ -48,7 +60,14 @@ export default function TopUp() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedMethod || !screenshot) return;
+    if (!selectedMethod || !screenshot) {
+      toast({
+        title: "Error",
+        description: "Please fill all fields and upload a screenshot",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const formData = new FormData();
     formData.append("paymentMethodId", selectedMethod.id);
