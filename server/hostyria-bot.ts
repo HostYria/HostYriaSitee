@@ -33,7 +33,7 @@ function sendWelcomeMessage(chatId: number) {
 
 // Support message
 function sendSupportMessage(chatId: number) {
-  const supportText = `You can contact us with:\n\nTelegram support bot:\n@TurboTel\n\nEmail: HostYria.Team@TurboTel.com`;
+  const supportText = `You can contact us with:\n\nTelegram support bot:\n@HostYria_Support_Bot\n\nEmail: HostYria.Team@gmail.com`;
 
   bot.sendMessage(chatId, supportText);
 }
@@ -114,7 +114,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
 
   const repoText = `Repo name: ${repo.name}\nStatus: ${repo.status}`;
 
-  const actionButton = repo.status === 'running' 
+  const actionButton = repo.status === 'running'
     ? { text: 'Stop', callback_data: `stop_${repoId}` }
     : { text: 'Start', callback_data: `start_${repoId}` };
 
@@ -129,37 +129,10 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
 }
 
 // Handle /start command
-bot.onText(/\/start/, async (msg) => {
-      const chatId = msg.chat.id;
-      const telegramUsername = msg.from?.username || '';
-
-      const user = await db.select().from(users).where(eq(users.telegramUsername, telegramUsername)).limit(1);
-
-      if (user.length === 0) {
-        bot.sendMessage(chatId, 
-          'Welcome to HostYria! 🚀\n\n' +
-          'Please register first using our website and link your Telegram username in your account settings.'
-        );
-      } else {
-        const userBalance = parseFloat(user[0].balance || '0');
-        bot.sendMessage(
-          chatId,
-          `Welcome back, ${user[0].username}! 👋\n\n` +
-          `Your current balance: $${userBalance.toFixed(2)}\n\n` +
-          'What would you like to do?',
-          {
-            reply_markup: {
-              keyboard: [
-                ['📊 Check Balance', '📂 My Repositories'],
-                ['💬 Support'],
-                ['🚪 Sign out']
-              ],
-              resize_keyboard: true
-            }
-          }
-        );
-      }
-    });
+bot.onText(/\/start/, (msg) => {
+  const chatId = msg.chat.id;
+  sendWelcomeMessage(chatId);
+});
 
 // Handle callback queries
 bot.on('callback_query', async (query) => {
@@ -266,20 +239,6 @@ bot.on('message', async (msg) => {
     await sendDashboard(chatId);
   }
 });
-
-bot.onText(/🚪 Sign out/, async (msg) => {
-      const chatId = msg.chat.id;
-
-      bot.sendMessage(
-        chatId,
-        'You have been signed out. Use /start to sign in again.',
-        {
-          reply_markup: {
-            remove_keyboard: true
-          }
-        }
-      );
-    });
 
 console.log('HostYria Bot started successfully! 🚀');
 
