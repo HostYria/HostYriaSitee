@@ -589,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const hashedPassword = await hashPassword(newPassword);
       const updated = await storage.updateUserPassword(userId, hashedPassword);
-      
+
       if (!updated) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -673,7 +673,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? await storage.getBalanceRequests()
         : await storage.getUserBalanceRequests(req.session.userId);
 
-      res.json(requests);
+      // Replace "Unknown" with actual user data
+      const enrichedRequests = await Promise.all(requests.map(async (req) => {
+        const user = await storage.getUser(req.userId);
+        return {
+          ...req,
+          user: user ? { id: user.id, username: user.username, email: user.email } : { id: null, username: "Unknown", email: "Unknown" },
+        };
+      }));
+
+      res.json(enrichedRequests);
     } catch (error) {
       console.error("Error fetching balance requests:", error);
       res.status(500).json({ message: "Failed to fetch balance requests" });
@@ -714,12 +723,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid status" });
       }
 
-      const request = await storage.updateBalanceRequestStatus(req.params.id, status);
-      if (!request) {
-        return res.status(404).json({ message: "Balance request not found" });
+      const updatedRequest = await storage.updateBalanceRequestStatus(
+        req.params.id,
+        req.body.status
+      );
+
+      // Create notification for user
+      if (updatedRequest) {
+        const isApproved = req.body.status === 'approved';
+        await storage.createNotification({
+          userId: updatedRequest.userId,
+          title: isApproved ? '✅ تمت الموافقة على طلب الإيداع' : '❌ تم رفض طلب الإيداع',
+          message: isApproved
+            ? `تمت الموافقة على طلب إيداع بقيمة ${updatedRequest.amountSent} وتم إضافة المبلغ إلى رصيدك.`
+            : `تم رفض طلب الإيداع الخاص بك. يرجى التواصل مع الدعم للمزيد من التفاصيل.`,
+          type: isApproved ? 'balance_approved' : 'balance_rejected',
+          relatedId: updatedRequest.id,
+        });
       }
 
-      res.json(request);
+      res.json(updatedRequest);
     } catch (error: any) {
       console.error("Error updating balance request status:", error);
       res.status(400).json({ message: error.message || "Failed to update balance request status" });

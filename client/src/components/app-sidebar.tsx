@@ -1,4 +1,4 @@
-import { Folder, User, DollarSign, MessageSquare, LogOut, Code, Shield } from "lucide-react";
+import { Folder, User, DollarSign, MessageSquare, LogOut, Code, Shield, Server } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import NotificationsPopover from "./notifications-popover";
 
 export function AppSidebar() {
   const [location] = useLocation();
@@ -53,14 +54,26 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-            <Code className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="text-lg font-bold">HostYria</span>
-        </div>
-      </SidebarHeader>
+      <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <div className="flex items-center justify-between w-full gap-2">
+                <SidebarMenuButton size="lg" asChild className="flex-1">
+                  <a href="/">
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                      <Server className="size-4" />
+                    </div>
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">HostYria Bot</span>
+                      <span className="truncate text-xs">Bot Management</span>
+                    </div>
+                  </a>
+                </SidebarMenuButton>
+                <NotificationsPopover />
+              </div>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
@@ -133,9 +146,9 @@ export function AppSidebar() {
             </div>
           </>
         )}
-        <Button 
-          variant="outline" 
-          className="w-full" 
+        <Button
+          variant="outline"
+          className="w-full"
           onClick={async () => {
             try {
               const response = await fetch("/api/auth/logout", {

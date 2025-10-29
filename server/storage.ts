@@ -1,22 +1,25 @@
 import {
   users,
   repositories,
-  files,
   environmentVariables,
   paymentMethods,
   balanceRequests,
+  supportMessages,
+  notifications,
   type User,
   type InsertUser,
   type Repository,
   type InsertRepository,
-  type File,
-  type InsertFile,
   type EnvironmentVariable,
   type InsertEnvironmentVariable,
   type PaymentMethod,
   type InsertPaymentMethod,
   type BalanceRequest,
   type InsertBalanceRequest,
+  type SupportMessage,
+  type InsertSupportMessage,
+  type Notification,
+  type InsertNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, sql } from "drizzle-orm";
@@ -54,6 +57,12 @@ export interface IStorage {
   createBalanceRequest(data: Omit<InsertBalanceRequest, 'id' | 'createdAt' | 'status'>): Promise<BalanceRequest>;
   updateBalanceRequestStatus(id: string, status: string, adminNotes?: string): Promise<BalanceRequest | undefined>;
   updateUserBalance(userId: string, amount: number): Promise<User | undefined>;
+
+  // Notifications
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  getNotifications(userId: string): Promise<Notification[]>;
+  getUnreadNotificationsCount(userId: string): Promise<number>;
+  markNotificationAsRead(id: string): Promise<Notification | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -311,19 +320,19 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateBalanceRequestStatus(id: string, status: string): Promise<BalanceRequest | undefined> {
+  async updateBalanceRequestStatus(id: string, status: string, adminNotes?: string): Promise<BalanceRequest | undefined> {
     const [updated] = await db
       .update(balanceRequests)
-      .set({ status })
+      .set({ status, adminNotes })
       .where(eq(balanceRequests.id, id))
       .returning();
-    
+
     if (updated && status === 'approved') {
       const request = updated;
       const amountInUsd = parseFloat(request.amountSent);
       await this.updateUserBalance(request.userId, amountInUsd);
     }
-    
+
     return updated;
   }
 
@@ -335,6 +344,33 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date() 
       })
       .where(eq(users.id, userId))
+      .returning();
+    return updated;
+  }
+
+  // Notifications
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [created] = await db.insert(notifications).values(notification).returning();
+    return created;
+  }
+
+  async getNotifications(userId: string): Promise<Notification[]> {
+    return await db.select().from(notifications).where(eq(notifications.userId, userId)).orderBy(notifications.createdAt);
+  }
+
+  async getUnreadNotificationsCount(userId: string): Promise<number> {
+    const [result] = await db
+      .select({ count: sql`COUNT(*)` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), eq(notifications.isRead, false)));
+    return result.count;
+  }
+
+  async markNotificationAsRead(id: string): Promise<Notification | undefined> {
+    const [updated] = await db
+      .update(notifications)
+      .set({ isRead: true, updatedAt: new Date() })
+      .where(eq(notifications.id, id))
       .returning();
     return updated;
   }

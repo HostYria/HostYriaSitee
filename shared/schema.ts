@@ -176,3 +176,20 @@ export const insertEnvironmentVariableSchema = createInsertSchema(environmentVar
 
 export type InsertEnvironmentVariable = z.infer<typeof insertEnvironmentVariableSchema>;
 export type EnvironmentVariable = typeof environmentVariables.$inferSelect;
+
+
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull(), // 'balance_approved', 'balance_rejected', 'support_message', 'general'
+  isRead: boolean("is_read").notNull().default(false),
+  relatedId: uuid("related_id"), // Reference to related entity (balance request, support message, etc.)
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

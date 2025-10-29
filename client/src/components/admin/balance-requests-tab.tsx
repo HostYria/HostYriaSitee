@@ -68,14 +68,55 @@ export default function BalanceRequestsTab() {
     );
   }
 
+  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  const approvedCount = requests.filter(r => r.status === 'approved').length;
+  const rejectedCount = requests.filter(r => r.status === 'rejected').length;
+
   return (
-    <Card className="p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold">Balance Requests</h2>
-        <p className="text-muted-foreground mt-1">
-          Review and approve/reject user balance top-up requests
-        </p>
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <h3 className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{pendingCount}</h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Approved</p>
+              <h3 className="text-2xl font-bold text-green-600 dark:text-green-400">{approvedCount}</h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+              <Check className="h-6 w-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </Card>
+        <Card className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Rejected</p>
+              <h3 className="text-2xl font-bold text-red-600 dark:text-red-400">{rejectedCount}</h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+              <X className="h-6 w-6 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+        </Card>
       </div>
+
+      <Card className="p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold">Balance Requests</h2>
+          <p className="text-muted-foreground mt-1">
+            Review and approve/reject user balance top-up requests
+          </p>
+        </div>
 
       {requests.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
@@ -201,6 +242,7 @@ export default function BalanceRequestsTab() {
           </Table>
         </div>
       )}
-    </Card>
+      </Card>
+    </div>
   );
 }
