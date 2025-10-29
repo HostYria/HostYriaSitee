@@ -1,0 +1,1 @@
+ALTER TABLE "repositories" ADD COLUMN "auto_install_requirements" boolean DEFAULT false NOT NULL;
