@@ -17,6 +17,7 @@ const bot = new TelegramBot(BOT_TOKEN, { polling: true });
 // Store user sessions (telegram_id -> user data)
 const userSessions = new Map<number, { userId: string; email: string; username: string }>();
 const loginStates = new Map<number, { step: 'email' | 'password'; email?: string }>();
+const messageIds = new Map<number, number>(); // Store last message ID for each chat
 
 // Load sessions from database on startup
 async function loadSessionsFromDatabase() {
@@ -42,7 +43,7 @@ async function loadSessionsFromDatabase() {
 loadSessionsFromDatabase();
 
 // Welcome message with login
-function sendWelcomeMessage(chatId: number) {
+async function sendWelcomeMessage(chatId: number) {
   const welcomeText = `Welcome 🤗\nYou are not logged in yet.`;
 
   const keyboard = {
@@ -52,14 +53,46 @@ function sendWelcomeMessage(chatId: number) {
     ]
   };
 
-  bot.sendMessage(chatId, welcomeText, { reply_markup: keyboard });
+  const lastMessageId = messageIds.get(chatId);
+  
+  try {
+    if (lastMessageId) {
+      await bot.editMessageText(welcomeText, {
+        chat_id: chatId,
+        message_id: lastMessageId,
+        reply_markup: keyboard
+      });
+    } else {
+      const sent = await bot.sendMessage(chatId, welcomeText, { reply_markup: keyboard });
+      messageIds.set(chatId, sent.message_id);
+    }
+  } catch (error) {
+    // If edit fails, send new message
+    const sent = await bot.sendMessage(chatId, welcomeText, { reply_markup: keyboard });
+    messageIds.set(chatId, sent.message_id);
+  }
 }
 
 // Support message
-function sendSupportMessage(chatId: number) {
+async function sendSupportMessage(chatId: number) {
   const supportText = `You can contact us with:\n\nTelegram support bot:\n@HostYria_Support_Bot\n\nEmail: HostYria.Team@gmail.com`;
 
-  bot.sendMessage(chatId, supportText);
+  const lastMessageId = messageIds.get(chatId);
+  
+  try {
+    if (lastMessageId) {
+      await bot.editMessageText(supportText, {
+        chat_id: chatId,
+        message_id: lastMessageId
+      });
+    } else {
+      const sent = await bot.sendMessage(chatId, supportText);
+      messageIds.set(chatId, sent.message_id);
+    }
+  } catch (error) {
+    const sent = await bot.sendMessage(chatId, supportText);
+    messageIds.set(chatId, sent.message_id);
+  }
 }
 
 // Main dashboard
@@ -67,7 +100,7 @@ async function sendDashboard(chatId: number) {
   const session = userSessions.get(chatId);
 
   if (!session) {
-    sendWelcomeMessage(chatId);
+    await sendWelcomeMessage(chatId);
     return;
   }
 
@@ -75,7 +108,7 @@ async function sendDashboard(chatId: number) {
 
   if (!user) {
     userSessions.delete(chatId);
-    sendWelcomeMessage(chatId);
+    await sendWelcomeMessage(chatId);
     return;
   }
 
@@ -90,7 +123,23 @@ async function sendDashboard(chatId: number) {
     ]
   };
 
-  bot.sendMessage(chatId, dashboardText, { reply_markup: keyboard });
+  const lastMessageId = messageIds.get(chatId);
+  
+  try {
+    if (lastMessageId) {
+      await bot.editMessageText(dashboardText, {
+        chat_id: chatId,
+        message_id: lastMessageId,
+        reply_markup: keyboard
+      });
+    } else {
+      const sent = await bot.sendMessage(chatId, dashboardText, { reply_markup: keyboard });
+      messageIds.set(chatId, sent.message_id);
+    }
+  } catch (error) {
+    const sent = await bot.sendMessage(chatId, dashboardText, { reply_markup: keyboard });
+    messageIds.set(chatId, sent.message_id);
+  }
 }
 
 // Show repositories
@@ -98,14 +147,30 @@ async function showRepositories(chatId: number) {
   const session = userSessions.get(chatId);
 
   if (!session) {
-    sendWelcomeMessage(chatId);
+    await sendWelcomeMessage(chatId);
     return;
   }
 
   const userRepos = await db.select().from(repositories).where(eq(repositories.userId, session.userId));
 
   if (userRepos.length === 0) {
-    bot.sendMessage(chatId, 'You have no repositories yet.');
+    const lastMessageId = messageIds.get(chatId);
+    const text = 'You have no repositories yet.';
+    
+    try {
+      if (lastMessageId) {
+        await bot.editMessageText(text, {
+          chat_id: chatId,
+          message_id: lastMessageId
+        });
+      } else {
+        const sent = await bot.sendMessage(chatId, text);
+        messageIds.set(chatId, sent.message_id);
+      }
+    } catch (error) {
+      const sent = await bot.sendMessage(chatId, text);
+      messageIds.set(chatId, sent.message_id);
+    }
     return;
   }
 
@@ -115,7 +180,23 @@ async function showRepositories(chatId: number) {
     ]).concat([[{ text: '← Back', callback_data: 'back_to_dashboard' }]])
   };
 
-  bot.sendMessage(chatId, 'Your Repositories:', { reply_markup: keyboard });
+  const lastMessageId = messageIds.get(chatId);
+  
+  try {
+    if (lastMessageId) {
+      await bot.editMessageText('Your Repositories:', {
+        chat_id: chatId,
+        message_id: lastMessageId,
+        reply_markup: keyboard
+      });
+    } else {
+      const sent = await bot.sendMessage(chatId, 'Your Repositories:', { reply_markup: keyboard });
+      messageIds.set(chatId, sent.message_id);
+    }
+  } catch (error) {
+    const sent = await bot.sendMessage(chatId, 'Your Repositories:', { reply_markup: keyboard });
+    messageIds.set(chatId, sent.message_id);
+  }
 }
 
 // Show repository details
@@ -123,7 +204,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
   const session = userSessions.get(chatId);
 
   if (!session) {
-    sendWelcomeMessage(chatId);
+    await sendWelcomeMessage(chatId);
     return;
   }
 
@@ -132,7 +213,23 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
     .limit(1);
 
   if (!repo || repo.userId !== session.userId) {
-    bot.sendMessage(chatId, 'Repository not found.');
+    const lastMessageId = messageIds.get(chatId);
+    const text = 'Repository not found.';
+    
+    try {
+      if (lastMessageId) {
+        await bot.editMessageText(text, {
+          chat_id: chatId,
+          message_id: lastMessageId
+        });
+      } else {
+        const sent = await bot.sendMessage(chatId, text);
+        messageIds.set(chatId, sent.message_id);
+      }
+    } catch (error) {
+      const sent = await bot.sendMessage(chatId, text);
+      messageIds.set(chatId, sent.message_id);
+    }
     return;
   }
 
@@ -149,16 +246,34 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
     ]
   };
 
-  bot.sendMessage(chatId, repoText, { reply_markup: keyboard });
+  const lastMessageId = messageIds.get(chatId);
+  
+  try {
+    if (lastMessageId) {
+      await bot.editMessageText(repoText, {
+        chat_id: chatId,
+        message_id: lastMessageId,
+        reply_markup: keyboard
+      });
+    } else {
+      const sent = await bot.sendMessage(chatId, repoText, { reply_markup: keyboard });
+      messageIds.set(chatId, sent.message_id);
+    }
+  } catch (error) {
+    const sent = await bot.sendMessage(chatId, repoText, { reply_markup: keyboard });
+    messageIds.set(chatId, sent.message_id);
+  }
 }
 
 // Handle /start command
-bot.onText(/\/start/, (msg) => {
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
+  messageIds.set(chatId, msg.message_id);
+  
   if (userSessions.has(chatId)) {
-    sendDashboard(chatId);
+    await sendDashboard(chatId);
   } else {
-    sendWelcomeMessage(chatId);
+    await sendWelcomeMessage(chatId);
   }
 });
 
@@ -169,11 +284,24 @@ bot.on('callback_query', async (query) => {
 
   await bot.answerCallbackQuery(query.id);
 
+  // Store the message ID from callback query
+  if (query.message) {
+    messageIds.set(chatId, query.message.message_id);
+  }
+
   if (data === 'login') {
     loginStates.set(chatId, { step: 'email' });
-    bot.sendMessage(chatId, 'Enter your HostYria email:');
+    try {
+      await bot.editMessageText('Enter your HostYria email:', {
+        chat_id: chatId,
+        message_id: query.message!.message_id
+      });
+    } catch (error) {
+      const sent = await bot.sendMessage(chatId, 'Enter your HostYria email:');
+      messageIds.set(chatId, sent.message_id);
+    }
   } else if (data === 'support') {
-    sendSupportMessage(chatId);
+    await sendSupportMessage(chatId);
   } else if (data === 'my_repository') {
     await showRepositories(chatId);
   } else if (data === 'back_to_dashboard') {
@@ -188,8 +316,17 @@ bot.on('callback_query', async (query) => {
     }
     userSessions.delete(chatId);
     loginStates.delete(chatId);
-    bot.sendMessage(chatId, 'You have been logged out successfully.');
-    sendWelcomeMessage(chatId);
+    
+    try {
+      await bot.editMessageText('You have been logged out successfully.', {
+        chat_id: chatId,
+        message_id: query.message!.message_id
+      });
+    } catch (error) {
+      await bot.sendMessage(chatId, 'You have been logged out successfully.');
+    }
+    
+    await sendWelcomeMessage(chatId);
   } else if (data.startsWith('repo_')) {
     const repoId = data.substring(5);
     await showRepositoryDetails(chatId, repoId);
