@@ -16,11 +16,9 @@ import {
   loginSchema,
 } from "@shared/authSchema";
 
-// Assuming 'db', 'users', and 'eq' are imported from a database library like pg-drizzle
-// and 'bcrypt' is imported for password hashing.
-// These imports are missing in the original code but are implied by the changes.
 import { eq } from "drizzle-orm";
-import { db, users } from "./db"; // Placeholder for actual db import
+import { db } from "./db";
+import { users } from "@shared/schema";
 import bcrypt from "bcrypt";
 
 
