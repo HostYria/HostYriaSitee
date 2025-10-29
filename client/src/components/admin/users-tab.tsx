@@ -99,6 +99,7 @@ export default function UsersTab() {
             <TableRow>
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Balance</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Actions</TableHead>

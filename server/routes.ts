@@ -749,6 +749,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin support endpoints
+  app.get("/api/admin/support/messages", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const messages = await storage.getAllSupportMessages();
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching all support messages:", error);
+      res.status(500).json({ message: "Failed to fetch messages" });
+    }
+  });
+
+  app.post("/api/admin/support/messages/:userId/reply", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = await storage.getUser(req.session.userId);
+      if (!user?.isAdmin) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+
+      const { message } = req.body;
+      if (!message) {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      const supportMessage = await storage.createSupportMessage({
+        userId: req.params.userId,
+        message,
+        isFromUser: false,
+      });
+
+      // Create notification for user
+      await storage.createNotification({
+        userId: req.params.userId,
+        title: '💬 رد من الدعم الفني',
+        message: 'لديك رد جديد من فريق الدعم الفني',
+        type: 'support_message',
+        relatedId: supportMessage.id,
+      });
+
+      res.json(supportMessage);
+    } catch (error: any) {
+      console.error("Error sending support reply:", error);
+      res.status(500).json({ message: error.message || "Failed to send reply" });
+    }
+  });
+
   app.use("/uploads", (req, res, next) => {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     // Set content-type to display images in browser instead of downloading

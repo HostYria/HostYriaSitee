@@ -55,7 +55,7 @@ async function sendDashboard(chatId: number) {
     return;
   }
 
-  const balance = user.balance || 0;
+  const balance = parseFloat(user.balance || '0');
   const dashboardText = `Welcome ${session.username} in HostYria manager:\n\nYour Email: ${session.email}\nBalance: $${balance.toFixed(2)}`;
 
   const keyboard = {
@@ -138,10 +138,10 @@ bot.onText(/\/start/, async (msg) => {
       if (user.length === 0) {
         bot.sendMessage(chatId, 
           'Welcome to HostYria! 🚀\n\n' +
-          'Please register first using our website: https://your-replit-url.replit.app/register'
+          'Please register first using our website and link your Telegram username in your account settings.'
         );
       } else {
-        const userBalance = user[0].balance || 0;
+        const userBalance = parseFloat(user[0].balance || '0');
         bot.sendMessage(
           chatId,
           `Welcome back, ${user[0].username}! 👋\n\n` +
@@ -151,7 +151,7 @@ bot.onText(/\/start/, async (msg) => {
             reply_markup: {
               keyboard: [
                 ['📊 Check Balance', '📂 My Repositories'],
-                ['🔐 Change Password'],
+                ['💬 Support'],
                 ['🚪 Sign out']
               ],
               resize_keyboard: true

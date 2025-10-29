@@ -63,6 +63,10 @@ export interface IStorage {
   getNotifications(userId: string): Promise<Notification[]>;
   getUnreadNotificationsCount(userId: string): Promise<number>;
   markNotificationAsRead(id: string): Promise<Notification | undefined>;
+
+  // Support Messages
+  createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage>;
+  getAllSupportMessages(): Promise<SupportMessage[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -373,6 +377,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(notifications.id, id))
       .returning();
     return updated;
+  }
+
+  // Support Messages
+  async createSupportMessage(data: InsertSupportMessage): Promise<SupportMessage> {
+    const [message] = await db.insert(supportMessages).values(data).returning();
+    return message;
+  }
+
+  async getAllSupportMessages(): Promise<SupportMessage[]> {
+    const messages = await db.select().from(supportMessages).orderBy(supportMessages.createdAt);
+
+    // Get user info for each message
+    const messagesWithUsers = await Promise.all(
+      messages.map(async (msg) => {
+        const user = await this.getUser(msg.userId);
+        return {
+          ...msg,
+          user: user ? { id: user.id, username: user.username, email: user.email } : undefined,
+        };
+      })
+    );
+
+    return messagesWithUsers;
   }
 }
 
