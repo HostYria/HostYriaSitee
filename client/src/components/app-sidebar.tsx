@@ -133,12 +133,12 @@ export function AppSidebar() {
             </div>
           </>
         )}
-        <Button variant="outline" className="w-full" asChild data-testid="button-logout">
-          <a href="/api/logout">
+        <form action="/api/auth/logout" method="POST" className="w-full">
+          <Button variant="outline" className="w-full" type="submit" data-testid="button-logout">
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
-          </a>
-        </Button>
+          </Button>
+        </form>
       </SidebarFooter>
     </Sidebar>
   );
