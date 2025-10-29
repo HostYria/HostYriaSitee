@@ -257,6 +257,18 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(paymentMethods).orderBy(paymentMethods.createdAt);
   }
 
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(users.createdAt);
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<boolean> {
+    const result = await db
+      .update(users)
+      .set({ password: hashedPassword })
+      .where(eq(users.id, userId));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+
   async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
     const [method] = await db.select().from(paymentMethods).where(eq(paymentMethods.id, id));
     return method;
