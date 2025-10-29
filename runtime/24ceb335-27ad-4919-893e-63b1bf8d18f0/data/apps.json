@@ -1,0 +1,67 @@
+{
+  "xena_live_⚡": {
+    "name": "Xena Live ⚡",
+    "type": "app",
+    "categories": {
+      "xena_live_حسب_الكمية:": {
+        "name": "Xena live حسب الكمية:",
+        "price_per_unit": 1.4367,
+        "min_order": 10000,
+        "max_order": 10000000,
+        "type": "quantity"
+      }
+    }
+  },
+  "poppo_live_⚡": {
+    "name": "Poppo live ⚡",
+    "type": "app",
+    "categories": {
+      "poppo_live_حسب_الكمية:": {
+        "name": "Poppo Live حسب الكمية:",
+        "price_per_unit": 1.3426,
+        "min_order": 8000,
+        "max_order": 10000000,
+        "type": "quantity"
+      }
+    }
+  },
+  "olamet_⚡": {
+    "name": "Olamet ⚡",
+    "type": "app",
+    "categories": {
+      "olamet_حسب_الكمية:": {
+        "name": "Olamet حسب الكمية:",
+        "price_per_unit": 1.9209,
+        "min_order": 10000,
+        "max_order": 1000000,
+        "type": "quantity"
+      }
+    }
+  },
+  "gimme_live_⚡": {
+    "name": "Gimme Live ⚡",
+    "type": "app",
+    "categories": {
+      "gimme_live_حسب_الكمية:": {
+        "name": "Gimme live حسب الكمية:",
+        "price_per_unit": 1.7694,
+        "min_order": 1000,
+        "max_order": 1000000,
+        "type": "quantity"
+      }
+    }
+  },
+  "likee_⚡": {
+    "name": "Likee ⚡",
+    "type": "app",
+    "categories": {
+      "likee_حسب_الكمية:": {
+        "name": "Likee حسب الكمية:",
+        "price_per_unit": 235.8718,
+        "min_order": 100,
+        "max_order": 500000,
+        "type": "quantity"
+      }
+    }
+  }
+}
