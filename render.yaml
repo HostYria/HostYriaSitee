@@ -18,3 +18,5 @@ services:
         generateValue: true
       - key: NPM_CONFIG_PRODUCTION
         value: false
+      - key: PORT
+        value: 10000
