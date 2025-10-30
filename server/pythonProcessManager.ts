@@ -182,8 +182,14 @@ class PythonProcessManager {
     });
 
     childProcess.on("exit", (code, signal) => {
-      const status = code === 0 ? "stopped" : "error";
-      this.emitLog(repositoryId, `⚠️ Process exited with code ${code}${signal ? ` and signal ${signal}` : ''}`);
+      let status: "stopped" | "error" | "completed";
+      if (code === 0) {
+        status = "completed";
+        this.emitLog(repositoryId, `✅ Process completed successfully (exit code ${code})`);
+      } else {
+        status = "error";
+        this.emitLog(repositoryId, `❌ Process exited with code ${code}${signal ? ` and signal ${signal}` : ''}`);
+      }
       this.processes.delete(repositoryId);
       storage.updateRepositoryById(repositoryId, { status });
     });

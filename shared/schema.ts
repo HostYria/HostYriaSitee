@@ -10,6 +10,7 @@ import {
   boolean,
   uuid,
   numeric,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
@@ -85,6 +86,14 @@ export const supportMessages = pgTable("support_messages", {
 export type SupportMessage = typeof supportMessages.$inferSelect;
 export type InsertSupportMessage = typeof supportMessages.$inferInsert;
 
+// Repository status enum
+export const repositoryStatus = pgEnum("repository_status", [
+  "stopped",
+  "running",
+  "error",
+  "completed",
+]);
+
 // Repositories table
 export const repositories = pgTable("repositories", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -94,7 +103,7 @@ export const repositories = pgTable("repositories", {
   mainFile: varchar("main_file", { length: 255 }),
   pythonVersion: varchar("python_version", { length: 20 }).notNull().default("3.11"),
   autoInstallFromRequirements: boolean("auto_install_from_requirements").notNull().default(false),
-  status: varchar("status", { length: 20 }).notNull().default("stopped"),
+  status: repositoryStatus("status").notNull().default("stopped"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
