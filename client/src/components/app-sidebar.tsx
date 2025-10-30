@@ -1,4 +1,4 @@
-import { Folder, User, DollarSign, MessageSquare, LogOut, Code, Shield, Server } from "lucide-react";
+import { Folder, User, DollarSign, MessageSquare, LogOut, Code, Shield, Server, StickyNote } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -41,6 +41,11 @@ export function AppSidebar() {
       title: "Support",
       url: "/support",
       icon: MessageSquare,
+    },
+    {
+      title: "Notes",
+      url: "/notes",
+      icon: StickyNote,
     },
   ];
 
@@ -133,7 +138,6 @@ export function AppSidebar() {
                 <span className="font-medium">
                   {user.username}
                 </span>
-                <span className="text-sm text-muted-foreground">{user.email}</span>
               </div>
             </div>
             <div className="px-2 py-3 bg-primary/10 rounded-lg">

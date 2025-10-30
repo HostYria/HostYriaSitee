@@ -16,6 +16,7 @@ import Account from "@/pages/account";
 import Support from "@/pages/support";
 import TopUp from "@/pages/top-up";
 import AdminPanel from "@/pages/admin";
+import Notes from "@/pages/notes";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/support" component={Support} />
           <Route path="/top-up" component={TopUp} />
           <Route path="/admin" component={AdminPanel} />
+          <Route path="/notes" component={Notes} />
           <Route path="/" component={Repositories} />
         </>
       )}

@@ -885,6 +885,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notes routes
+  app.get("/api/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const notes = await storage.getNotes(req.session.userId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      res.status(500).json({ message: "Failed to fetch notes" });
+    }
+  });
+
+  app.get("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const note = await storage.getNote(req.params.id, req.session.userId);
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+      res.json(note);
+    } catch (error) {
+      console.error("Error fetching note:", error);
+      res.status(500).json({ message: "Failed to fetch note" });
+    }
+  });
+
+  app.post("/api/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const { insertNoteSchema } = await import("@shared/schema");
+      const validatedData = insertNoteSchema.parse(req.body);
+
+      const note = await storage.createNote(req.session.userId, validatedData);
+      res.status(201).json(note);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      console.error("Error creating note:", error);
+      res.status(500).json({ message: "Failed to create note" });
+    }
+  });
+
+  app.patch("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { insertNoteSchema } = await import("@shared/schema");
+      const validatedData = insertNoteSchema.partial().parse(req.body);
+
+      const note = await storage.updateNote(req.params.id, req.session.userId, validatedData);
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+      res.json(note);
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      console.error("Error updating note:", error);
+      res.status(500).json({ message: "Failed to update note" });
+    }
+  });
+
+  app.delete("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const deleted = await storage.deleteNote(req.params.id, req.session.userId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+      res.json({ message: "Note deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      res.status(500).json({ message: "Failed to delete note" });
+    }
+  });
+
   app.use("/uploads", (req, res, next) => {
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     // Set content-type to display images in browser instead of downloading
