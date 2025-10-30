@@ -2,6 +2,7 @@ import { spawn, type ChildProcess } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { storage } from "./storage";
+import chokidar from "chokidar";
 
 interface ProcessInfo {
   process: ChildProcess;
@@ -11,6 +12,7 @@ interface ProcessInfo {
 class PythonProcessManager {
   private processes: Map<string, ProcessInfo> = new Map();
   private logCallbacks: Map<string, Array<(message: string) => void>> = new Map();
+  private fileWatchers: Map<string, any> = new Map();
 
   async startRepository(repositoryId: string): Promise<void> {
     if (this.processes.has(repositoryId)) {
@@ -32,6 +34,9 @@ class PythonProcessManager {
     if (!fs.existsSync(workDir)) {
       fs.mkdirSync(workDir, { recursive: true });
     }
+
+    // Start file watcher for auto-sync
+    this.startFileWatcher(repositoryId, workDir);
 
     this.emitLog(repositoryId, `📁 Preparing files in: ${workDir}\n`);
 
@@ -199,8 +204,87 @@ class PythonProcessManager {
     this.emitLog(repositoryId, "\n✓ Application is now running\n\n--- Application Output ---\n");
   }
 
+  private startFileWatcher(repositoryId: string, workDir: string): void {
+    // إيقاف المراقب القديم إذا كان موجوداً
+    if (this.fileWatchers.has(repositoryId)) {
+      this.fileWatchers.get(repositoryId).close();
+    }
+
+    const watcher = chokidar.watch(workDir, {
+      ignored: /(^|[\/\\])\../, // تجاهل الملفات المخفية
+      persistent: true,
+      ignoreInitial: true,
+      awaitWriteFinish: {
+        stabilityThreshold: 500,
+        pollInterval: 100
+      }
+    });
+
+    watcher
+      .on('add', async (filePath: string) => {
+        try {
+          const relativePath = path.relative(workDir, filePath);
+          const pathParts = relativePath.split(path.sep);
+          const fileName = pathParts.pop() || '';
+          const fileDir = pathParts.join('/');
+
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const size = Buffer.byteLength(content, 'utf-8');
+
+          const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
+          if (!existing) {
+            await storage.createFile(repositoryId, {
+              name: fileName,
+              path: fileDir,
+              content,
+              size,
+              isDirectory: false
+            });
+            this.emitLog(repositoryId, `✅ تم حفظ الملف الجديد: ${relativePath}\n`);
+          }
+        } catch (error: any) {
+          console.error('Error syncing new file:', error);
+        }
+      })
+      .on('change', async (filePath: string) => {
+        try {
+          const relativePath = path.relative(workDir, filePath);
+          const content = fs.readFileSync(filePath, 'utf-8');
+          const size = Buffer.byteLength(content, 'utf-8');
+
+          const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
+          if (existing) {
+            await storage.updateFile(existing.id, repositoryId, { content, size });
+            this.emitLog(repositoryId, `💾 تم حفظ التغييرات: ${relativePath}\n`);
+          }
+        } catch (error: any) {
+          console.error('Error syncing file change:', error);
+        }
+      })
+      .on('unlink', async (filePath: string) => {
+        try {
+          const relativePath = path.relative(workDir, filePath);
+          const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
+          if (existing) {
+            await storage.deleteFile(existing.id, repositoryId);
+            this.emitLog(repositoryId, `🗑️ تم حذف الملف: ${relativePath}\n`);
+          }
+        } catch (error: any) {
+          console.error('Error syncing file deletion:', error);
+        }
+      });
+
+    this.fileWatchers.set(repositoryId, watcher);
+  }
+
   stopRepository(repositoryId: string): void {
     const processInfo = this.processes.get(repositoryId);
+    
+    // إيقاف مراقب الملفات
+    if (this.fileWatchers.has(repositoryId)) {
+      this.fileWatchers.get(repositoryId).close();
+      this.fileWatchers.delete(repositoryId);
+    }
     
     if (!processInfo) {
       // إذا لم تكن العملية تعمل، فقط حدّث الحالة

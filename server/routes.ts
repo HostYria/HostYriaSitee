@@ -443,32 +443,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const zipEntries = zip.getEntries();
 
       const createdFiles = [];
+      const createdFolders = new Set<string>();
 
+      // First pass: create all directories
       for (const entry of zipEntries) {
-        const fullPath = targetPath ? `${targetPath}/${entry.entryName}` : entry.entryName;
-        const pathParts = fullPath.split('/');
-        const fileName = pathParts.pop() || '';
-        const filePath = pathParts.join('/');
-
         if (entry.isDirectory) {
-          const folder = await storage.createFile(req.params.id, {
-            name: fileName,
-            path: filePath,
-            content: "",
-            size: 0,
-            isDirectory: true,
-          });
-          createdFiles.push(folder);
-        } else {
+          const fullPath = targetPath ? `${targetPath}/${entry.entryName}` : entry.entryName;
+          const cleanPath = fullPath.replace(/\/$/, ''); // إزالة / النهائية
+          const pathParts = cleanPath.split('/').filter(p => p);
+          
+          // إنشاء المجلدات الفرعية تدريجياً
+          for (let i = 0; i < pathParts.length; i++) {
+            const currentPath = pathParts.slice(0, i).join('/');
+            const folderName = pathParts[i];
+            const folderFullPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+            
+            if (!createdFolders.has(folderFullPath)) {
+              const existing = await storage.getFileByPath(req.params.id, folderFullPath);
+              if (!existing) {
+                const folder = await storage.createFile(req.params.id, {
+                  name: folderName,
+                  path: currentPath,
+                  content: "",
+                  size: 0,
+                  isDirectory: true,
+                });
+                createdFiles.push(folder);
+              }
+              createdFolders.add(folderFullPath);
+            }
+          }
+        }
+      }
+
+      // Second pass: create all files
+      for (const entry of zipEntries) {
+        if (!entry.isDirectory) {
+          const fullPath = targetPath ? `${targetPath}/${entry.entryName}` : entry.entryName;
+          const pathParts = fullPath.split('/').filter(p => p);
+          const fileName = pathParts.pop() || '';
+          const filePath = pathParts.join('/');
+
+          // إنشاء المجلدات الأب إذا لم تكن موجودة
+          if (filePath && !createdFolders.has(filePath)) {
+            const folderParts = filePath.split('/');
+            for (let i = 0; i < folderParts.length; i++) {
+              const currentPath = folderParts.slice(0, i).join('/');
+              const folderName = folderParts[i];
+              const folderFullPath = currentPath ? `${currentPath}/${folderName}` : folderName;
+              
+              if (!createdFolders.has(folderFullPath)) {
+                const existing = await storage.getFileByPath(req.params.id, folderFullPath);
+                if (!existing) {
+                  await storage.createFile(req.params.id, {
+                    name: folderName,
+                    path: currentPath,
+                    content: "",
+                    size: 0,
+                    isDirectory: true,
+                  });
+                }
+                createdFolders.add(folderFullPath);
+              }
+            }
+          }
+
           const content = entry.getData().toString('utf8');
-          const file = await storage.createFile(req.params.id, {
-            name: fileName,
-            path: filePath,
-            content,
-            size: content.length,
-            isDirectory: false,
-          });
-          createdFiles.push(file);
+          const existing = await storage.getFileByPath(req.params.id, fullPath);
+          
+          if (existing) {
+            await storage.updateFile(existing.id, req.params.id, { content, size: content.length });
+          } else {
+            const file = await storage.createFile(req.params.id, {
+              name: fileName,
+              path: filePath,
+              content,
+              size: content.length,
+              isDirectory: false,
+            });
+            createdFiles.push(file);
+          }
         }
       }
 

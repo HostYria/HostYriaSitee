@@ -335,7 +335,7 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
             className="hidden"
             onChange={handleZipUpload}
           />
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button data-testid="button-upload-options">
@@ -581,22 +581,22 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
             return (
               <Card
                 key={file.id}
-                className="p-4 flex items-center justify-between hover-elevate"
+                className="p-3 sm:p-4 flex items-center justify-between hover-elevate"
                 data-testid={`card-file-${file.id}`}
               >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Icon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-mono font-medium truncate" data-testid={`text-file-name-${file.id}`}>
+                    <p className="font-mono text-sm sm:text-base font-medium truncate" data-testid={`text-file-name-${file.id}`}>
                       {file.name}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       {formatFileSize(file.size)} • Updated{" "}
                       {new Date(file.updatedAt!).toLocaleDateString()}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex gap-0.5 sm:gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
