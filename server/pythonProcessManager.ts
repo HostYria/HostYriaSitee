@@ -141,7 +141,7 @@ class PythonProcessManager {
     this.emitLog(repositoryId, `\n🚀 Starting ${repository.mainFile}...\n`);
     this.emitLog(repositoryId, `Working directory: ${workDir}\n`);
 
-    const childProcess = spawn("python3", [repository.mainFile], {
+    const childProcess = spawn("python3", ["-u", repository.mainFile], {
       cwd: workDir,
       env,
       stdio: ['pipe', 'pipe', 'pipe'],
