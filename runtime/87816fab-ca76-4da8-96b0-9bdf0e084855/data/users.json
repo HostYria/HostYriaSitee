@@ -1,0 +1,26 @@
+{
+  "8319511583": {
+    "balance": 0,
+    "created_at": "2025-10-27T07:20:40.018833",
+    "orders": [],
+    "referral_id": 500,
+    "referred_by": null,
+    "referrals_level_1": [],
+    "referrals_level_2": [],
+    "referral_earnings": 0,
+    "total_referral_earnings": 0,
+    "has_purchased": false
+  },
+  "8423124870": {
+    "balance": 0,
+    "created_at": "2025-10-27T07:25:03.864877",
+    "orders": [],
+    "referral_id": 501,
+    "referred_by": null,
+    "referrals_level_1": [],
+    "referrals_level_2": [],
+    "referral_earnings": 0,
+    "total_referral_earnings": 0,
+    "has_purchased": false
+  }
+}
