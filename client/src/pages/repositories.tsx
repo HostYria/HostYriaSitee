@@ -191,6 +191,8 @@ export default function Repositories() {
                         ? "bg-status-online animate-pulse"
                         : repo.status === "error"
                         ? "bg-status-busy"
+                        : repo.status === "completed"
+                        ? "bg-green-500"
                         : "bg-status-offline"
                     }`}
                   />

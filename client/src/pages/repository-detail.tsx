@@ -115,7 +115,7 @@ export default function RepositoryDetail() {
   }
 
   const isRunning = repository.status === "running";
-  const isStopped = repository.status === "stopped" || repository.status === "error";
+  const canStart = repository.status === "stopped" || repository.status === "error" || repository.status === "completed";
 
   return (
     <div className="p-6 space-y-6">
@@ -154,6 +154,8 @@ export default function RepositoryDetail() {
                     ? "bg-status-online animate-pulse"
                     : repository.status === "error"
                     ? "bg-status-busy"
+                    : repository.status === "completed"
+                    ? "bg-green-500"
                     : "bg-status-offline"
                 }`}
               />
@@ -194,37 +196,34 @@ export default function RepositoryDetail() {
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2 pb-px">
-            {isStopped && (
-              <Button
-                onClick={() => startMutation.mutate()}
-                disabled={startMutation.isPending}
-                data-testid="button-start-repository"
-                size="sm"
-              >
-                {startMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4 mr-2" />
-                )}
-                Start
-              </Button>
-            )}
-            {isRunning && (
-              <Button
-                variant="destructive"
-                onClick={() => stopMutation.mutate()}
-                disabled={stopMutation.isPending}
-                data-testid="button-stop-repository"
-                size="sm"
-              >
-                {stopMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Square className="h-4 w-4 mr-2" />
-                )}
-                Stop
-              </Button>
-            )}
+            <Button
+              onClick={() => startMutation.mutate()}
+              disabled={startMutation.isPending || isRunning}
+              data-testid="button-start-repository"
+              size="sm"
+              variant={canStart ? "default" : "outline"}
+            >
+              {startMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Start
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => stopMutation.mutate()}
+              disabled={stopMutation.isPending || !isRunning}
+              data-testid="button-stop-repository"
+              size="sm"
+            >
+              {stopMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Square className="h-4 w-4 mr-2" />
+              )}
+              Stop
+            </Button>
           </div>
         </div>
 
