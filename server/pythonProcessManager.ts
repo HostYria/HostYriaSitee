@@ -326,7 +326,10 @@ class PythonProcessManager {
   private emitFileSync(repositoryId: string, action: string): void {
     const callbacks = this.logCallbacks.get(repositoryId);
     if (callbacks) {
-      callbacks.forEach((callback) => callback(`__FILE_SYNC__:${action}`));
+      // إرسال إشارة واضحة للتزامن
+      callbacks.forEach((callback) => {
+        callback(`__FILE_SYNC__:${action}\n`);
+      });
     }
   }
 

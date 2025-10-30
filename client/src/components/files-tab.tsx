@@ -74,13 +74,29 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        if (data.type === 'log' && data.message?.includes('__FILE_SYNC__:')) {
-          // تحديث قائمة الملفات فوراً عند اكتشاف تغيير
-          queryClient.invalidateQueries({ queryKey: ["/api/repositories", repositoryId, "files"] });
+        if (data.type === 'log' && data.repositoryId === repositoryId) {
+          const message = data.message || '';
+          
+          // تحقق من رسائل التزامن التلقائي
+          if (message.includes('__FILE_SYNC__:') || 
+              message.includes('تم إنشاء المجلد تلقائيًا:') ||
+              message.includes('تم حفظ الملف الجديد تلقائيًا:') ||
+              message.includes('تم حفظ التغييرات تلقائيًا:') ||
+              message.includes('تم حذف الملف تلقائيًا:') ||
+              message.includes('تم حذف المجلد تلقائيًا:')) {
+            
+            console.log('File sync detected, refreshing file list...');
+            // تحديث قائمة الملفات فوراً
+            queryClient.invalidateQueries({ queryKey: ["/api/repositories", repositoryId, "files"] });
+          }
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
       }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
     };
 
     ws.onclose = () => {
@@ -88,7 +104,9 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
     };
 
     return () => {
-      ws.close();
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
     };
   }, [repositoryId]);
 
