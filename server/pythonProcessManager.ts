@@ -35,7 +35,7 @@ class PythonProcessManager {
       fs.mkdirSync(workDir, { recursive: true });
     }
 
-    // Start file watcher for auto-sync
+    // Start file watcher for auto-sync (will restart if already running)
     this.startFileWatcher(repositoryId, workDir);
 
     this.emitLog(repositoryId, `📁 Preparing files in: ${workDir}\n`);
@@ -204,7 +204,7 @@ class PythonProcessManager {
     this.emitLog(repositoryId, "\n✓ Application is now running\n\n--- Application Output ---\n");
   }
 
-  private startFileWatcher(repositoryId: string, workDir: string): void {
+  startFileWatcher(repositoryId: string, workDir: string): void {
     // إيقاف المراقب القديم إذا كان موجوداً
     if (this.fileWatchers.has(repositoryId)) {
       this.fileWatchers.get(repositoryId).close();
@@ -240,7 +240,8 @@ class PythonProcessManager {
               size,
               isDirectory: false
             });
-            this.emitLog(repositoryId, `✅ تم حفظ الملف الجديد: ${relativePath}\n`);
+            console.log(`[File Sync] New file detected and saved: ${relativePath}`);
+            this.emitLog(repositoryId, `✅ تم حفظ الملف الجديد تلقائيًا: ${relativePath}\n`);
           }
         } catch (error: any) {
           console.error('Error syncing new file:', error);
@@ -255,7 +256,8 @@ class PythonProcessManager {
           const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
           if (existing) {
             await storage.updateFile(existing.id, repositoryId, { content, size });
-            this.emitLog(repositoryId, `💾 تم حفظ التغييرات: ${relativePath}\n`);
+            console.log(`[File Sync] File change detected and saved: ${relativePath}`);
+            this.emitLog(repositoryId, `💾 تم حفظ التغييرات تلقائيًا: ${relativePath}\n`);
           }
         } catch (error: any) {
           console.error('Error syncing file change:', error);
@@ -267,7 +269,8 @@ class PythonProcessManager {
           const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
           if (existing) {
             await storage.deleteFile(existing.id, repositoryId);
-            this.emitLog(repositoryId, `🗑️ تم حذف الملف: ${relativePath}\n`);
+            console.log(`[File Sync] File deletion detected and synced: ${relativePath}`);
+            this.emitLog(repositoryId, `🗑️ تم حذف الملف تلقائيًا: ${relativePath}\n`);
           }
         } catch (error: any) {
           console.error('Error syncing file deletion:', error);
@@ -280,11 +283,8 @@ class PythonProcessManager {
   stopRepository(repositoryId: string): void {
     const processInfo = this.processes.get(repositoryId);
     
-    // إيقاف مراقب الملفات
-    if (this.fileWatchers.has(repositoryId)) {
-      this.fileWatchers.get(repositoryId).close();
-      this.fileWatchers.delete(repositoryId);
-    }
+    // لا نقوم بإيقاف مراقب الملفات - يستمر في العمل حتى عند إيقاف العملية
+    // هذا يسمح بالتزامن التلقائي للملفات حتى عندما يكون المستودع متوقفًا
     
     if (!processInfo) {
       // إذا لم تكن العملية تعمل، فقط حدّث الحالة

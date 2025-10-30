@@ -398,6 +398,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = insertFileSchema.parse(req.body);
       const file = await storage.createFile(req.params.id, data);
+      
+      // Start file watcher if not already running
+      const workDir = path.join(process.cwd(), "runtime", req.params.id);
+      if (!fs.existsSync(workDir)) {
+        fs.mkdirSync(workDir, { recursive: true });
+      }
+      pythonProcessManager.startFileWatcher(req.params.id, workDir);
+      
       res.json(file);
     } catch (error: any) {
       console.error("Error creating file:", error);
