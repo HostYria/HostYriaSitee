@@ -49,6 +49,7 @@ const settingsSchema = z.object({
   mainFile: z.string().optional(),
   pythonVersion: z.string(),
   autoInstallRequirements: z.boolean().default(false),
+  autoInstallFromRequirements: z.boolean().default(false),
 });
 
 type SettingsForm = z.infer<typeof settingsSchema>;
@@ -77,6 +78,7 @@ export function SettingsTab({
       mainFile: repository.mainFile || "",
       pythonVersion: repository.pythonVersion,
       autoInstallRequirements: repository.autoInstallRequirements || false,
+      autoInstallFromRequirements: repository.autoInstallFromRequirements || false,
     },
   });
 
@@ -301,6 +303,32 @@ export function SettingsTab({
                       checked={field.value}
                       onCheckedChange={field.onChange}
                       data-testid="switch-auto-install"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="autoInstallFromRequirements"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Do you have a requirements.txt file?
+                    </FormLabel>
+                    <FormDescription>
+                      عند التفعيل: سيتم تحميل المكتبات تلقائياً من ملف requirements.txt عند بدء التشغيل
+                      <br />
+                      عند عدم التفعيل: يجب تحميل المكتبات يدوياً من Terminal
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-auto-install-from-requirements"
                     />
                   </FormControl>
                 </FormItem>

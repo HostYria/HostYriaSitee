@@ -81,12 +81,61 @@ class PythonProcessManager {
       env[envVar.key] = envVar.value;
     }
 
-    // Check if requirements.txt exists and inform user
+    // Check if requirements.txt exists and handle auto-installation
     const requirementsFile = files.find((f) => f.name === "requirements.txt" && !f.isDirectory);
     if (requirementsFile && requirementsFile.content.trim()) {
       this.emitLog(repositoryId, "ℹ️ requirements.txt detected.");
-      this.emitLog(repositoryId, "ℹ️ Please install packages using the 'Packages' tool in Replit.");
-      this.emitLog(repositoryId, "ℹ️ Or use the Terminal tab to run: pip install package_name");
+      
+      if (repository.autoInstallFromRequirements) {
+        this.emitLog(repositoryId, "📦 Auto-installing packages from requirements.txt...");
+        
+        try {
+          const requirementsPath = path.join(workDir, "requirements.txt");
+          
+          // Install packages using pip
+          const installOutput = await new Promise<string>((resolve, reject) => {
+            const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", "-r", requirementsPath], {
+              cwd: workDir,
+            });
+
+            let output = "";
+            let errorOutput = "";
+
+            pipInstall.stdout?.on("data", (data) => {
+              const message = data.toString();
+              output += message;
+              this.emitLog(repositoryId, message);
+            });
+
+            pipInstall.stderr?.on("data", (data) => {
+              const message = data.toString();
+              errorOutput += message;
+              this.emitLog(repositoryId, message);
+            });
+
+            pipInstall.on("close", (code) => {
+              if (code !== 0) {
+                reject(new Error(errorOutput || `pip install failed with code ${code}`));
+              } else {
+                resolve(output);
+              }
+            });
+
+            pipInstall.on("error", (error) => {
+              reject(error);
+            });
+          });
+
+          this.emitLog(repositoryId, "✅ Packages installed successfully from requirements.txt");
+        } catch (error: any) {
+          this.emitLog(repositoryId, `❌ Failed to install packages: ${error.message}`);
+          this.emitLog(repositoryId, "ℹ️ You can install packages manually from the Terminal tab");
+        }
+      } else {
+        this.emitLog(repositoryId, "ℹ️ Auto-install from requirements.txt is disabled.");
+        this.emitLog(repositoryId, "ℹ️ Please install packages manually using the Terminal tab:");
+        this.emitLog(repositoryId, "ℹ️ Run: pip install --user -r requirements.txt");
+      }
     }
 
     this.emitLog(repositoryId, `🚀 Starting ${repository.mainFile}...`);
