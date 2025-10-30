@@ -62,7 +62,7 @@ async function sendWelcomeMessage(chatId: number) {
   };
 
   const lastMessageId = messageIds.get(chatId);
-  
+
   try {
     if (lastMessageId) {
       await bot.editMessageText(welcomeText, {
@@ -86,7 +86,7 @@ async function sendSupportMessage(chatId: number) {
   const supportText = `You can contact us with:\n\nTelegram support bot:\n@HostYria_Support_Bot\n\nEmail: HostYria.Team@gmail.com`;
 
   const lastMessageId = messageIds.get(chatId);
-  
+
   try {
     if (lastMessageId) {
       await bot.editMessageText(supportText, {
@@ -132,7 +132,7 @@ async function sendDashboard(chatId: number) {
   };
 
   const lastMessageId = messageIds.get(chatId);
-  
+
   try {
     if (lastMessageId) {
       await bot.editMessageText(dashboardText, {
@@ -164,7 +164,7 @@ async function showRepositories(chatId: number) {
   if (userRepos.length === 0) {
     const lastMessageId = messageIds.get(chatId);
     const text = 'You have no repositories yet.';
-    
+
     try {
       if (lastMessageId) {
         await bot.editMessageText(text, {
@@ -189,7 +189,7 @@ async function showRepositories(chatId: number) {
   };
 
   const lastMessageId = messageIds.get(chatId);
-  
+
   try {
     if (lastMessageId) {
       await bot.editMessageText('Your Repositories:', {
@@ -223,7 +223,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
   if (!repo || repo.userId !== session.userId) {
     const lastMessageId = messageIds.get(chatId);
     const text = 'Repository not found.';
-    
+
     try {
       if (lastMessageId) {
         await bot.editMessageText(text, {
@@ -255,7 +255,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
   };
 
   const lastMessageId = messageIds.get(chatId);
-  
+
   try {
     if (lastMessageId) {
       await bot.editMessageText(repoText, {
@@ -277,7 +277,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   messageIds.set(chatId, msg.message_id);
-  
+
   if (userSessions.has(chatId)) {
     await sendDashboard(chatId);
   } else {
@@ -324,7 +324,7 @@ bot.on('callback_query', async (query) => {
     }
     userSessions.delete(chatId);
     loginStates.delete(chatId);
-    
+
     try {
       await bot.editMessageText('You have been logged out successfully.', {
         chat_id: chatId,
@@ -333,7 +333,7 @@ bot.on('callback_query', async (query) => {
     } catch (error) {
       await bot.sendMessage(chatId, 'You have been logged out successfully.');
     }
-    
+
     await sendWelcomeMessage(chatId);
   } else if (data.startsWith('repo_')) {
     const repoId = data.substring(5);
