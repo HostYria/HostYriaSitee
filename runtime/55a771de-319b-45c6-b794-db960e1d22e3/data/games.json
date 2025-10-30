@@ -1,0 +1,229 @@
+{
+  "pubg_⚡_(_server_1_)": {
+    "name": "Pubg ⚡ ( Server 1 )",
+    "type": "game",
+    "categories": {
+      "60_uc": {
+        "name": "60 UC",
+        "price": 11340,
+        "type": "fixed"
+      },
+      "325_uc": {
+        "name": "325 UC",
+        "price": 55902,
+        "type": "fixed"
+      },
+      "660_uc": {
+        "name": "660 UC",
+        "price": 111605,
+        "type": "fixed"
+      },
+      "1800_uc": {
+        "name": "1800 UC",
+        "price": 278712,
+        "type": "fixed"
+      },
+      "3850_uc": {
+        "name": "3850 UC",
+        "price": 557223,
+        "type": "fixed"
+      },
+      "8100_uc": {
+        "name": "8100 UC",
+        "price": 1110941,
+        "type": "fixed"
+      }
+    }
+  },
+  "pubg_⚡_(_server_2_)": {
+    "name": "Pubg ⚡ ( Server 2 )",
+    "type": "game",
+    "categories": {
+      "60_uc": {
+        "name": "60 UC",
+        "price": 11540,
+        "type": "fixed"
+      },
+      "325_uc": {
+        "name": "325 UC",
+        "price": 56900,
+        "type": "fixed"
+      },
+      "660_uc": {
+        "name": "660 UC",
+        "price": 112550,
+        "type": "fixed"
+      },
+      "1800_uc": {
+        "name": "1800 UC",
+        "price": 294060,
+        "type": "fixed"
+      },
+      "3850_uc": {
+        "name": "3850 UC",
+        "price": 582578,
+        "type": "fixed"
+      },
+      "8100_uc": {
+        "name": "8100 UC",
+        "price": 1132899,
+        "type": "fixed"
+      }
+    }
+  },
+  "free_fire_🔥_(_server_1_)": {
+    "name": "Free Fire 🔥 ( Server 1 )",
+    "type": "game",
+    "categories": {
+      "100+10_جوهرة": {
+        "name": "100+10 جوهرة",
+        "price": 12015,
+        "type": "fixed"
+      },
+      "210+21_جوهرة": {
+        "name": "210+21 جوهرة",
+        "price": 23870,
+        "type": "fixed"
+      },
+      "530+53_جوهرة": {
+        "name": "530+53 جوهرة",
+        "price": 59376,
+        "type": "fixed"
+      },
+      "1080+108_جوهرة": {
+        "name": "1080+108 جوهرة",
+        "price": 118012,
+        "type": "fixed"
+      },
+      "2200+220_جوهرة": {
+        "name": "2200+220 جوهرة",
+        "price": 236907,
+        "type": "fixed"
+      },
+      "عضوية_أسبوعية": {
+        "name": "عضوية أسبوعية",
+        "price": 33217,
+        "type": "fixed"
+      },
+      "عضوية_شهرية": {
+        "name": "عضوية شهرية",
+        "price": 139028,
+        "type": "fixed"
+      }
+    }
+  },
+  "حزم_free_fire_🔥": {
+    "name": "حزم Free Fire 🔥",
+    "type": "game",
+    "categories": {
+      "🛠️_حزمة_ترقية_المستوى_6": {
+        "name": "🛠️ حزمة ترقية المستوى 6",
+        "price": 5710,
+        "type": "fixed"
+      },
+      "🛠️_حزمة_ترقية_المستوى_10": {
+        "name": "🛠️ حزمة ترقية المستوى 10",
+        "price": 9551,
+        "type": "fixed"
+      },
+      "🛠️_حزمة_ترقية_المستوى_15": {
+        "name": "🛠️ حزمة ترقية المستوى 15",
+        "price": 9551,
+        "type": "fixed"
+      },
+      "🛠️_حزمة_ترقية_المستوى_20": {
+        "name": "🛠️ حزمة ترقية المستوى 20",
+        "price": 9551,
+        "type": "fixed"
+      },
+      "🛠️_حزمة_ترقية_المستوى_25": {
+        "name": "🛠️ حزمة ترقية المستوى 25",
+        "price": 9551,
+        "type": "fixed"
+      },
+      "🛠️_حزمة_ترقية_المستوى_30": {
+        "name": "🛠️ حزمة ترقية المستوى 30",
+        "price": 13416,
+        "type": "fixed"
+      }
+    }
+  },
+  "jawaker_🃏": {
+    "name": "Jawaker 🃏",
+    "type": "game",
+    "categories": {
+      "توكنز_جواكر:_حسب_الكمية": {
+        "name": "توكنز جواكر: حسب الكمية",
+        "price_per_unit": 1.382,
+        "min_order": 10000,
+        "max_order": 5000000,
+        "type": "quantity"
+      },
+      "توكنز_2_جواكر:_حسب_الكمية": {
+        "name": "توكنز 2 جواكر: حسب الكمية",
+        "price_per_unit": 1.419,
+        "min_order": 10000,
+        "max_order": 5000000,
+        "type": "quantity"
+      },
+      "توكنز:_حسب_الكمية_فئات_صغيرة": {
+        "name": "توكنز: حسب الكمية فئات صغيرة",
+        "price_per_unit": 1.821,
+        "min_order": 1,
+        "max_order": 11000,
+        "type": "quantity"
+      }
+    }
+  },
+  "delta_force_⚡": {
+    "name": "Delta Force ⚡",
+    "type": "game",
+    "categories": {
+      "delta_force_18": {
+        "name": "Delta Force 18",
+        "price": 3191,
+        "type": "fixed"
+      },
+      "delta_force_30": {
+        "name": "Delta Force 30",
+        "price": 4536,
+        "type": "fixed"
+      },
+      "delta_force_60": {
+        "name": "Delta Force 60",
+        "price": 10254,
+        "type": "fixed"
+      },
+      "delta_force_300+20": {
+        "name": "Delta Force 300+20",
+        "price": 49309,
+        "type": "fixed"
+      },
+      "delta_force_420+40": {
+        "name": "Delta Force 420+40",
+        "price": 71681,
+        "type": "fixed"
+      },
+      "delta_force_680+70": {
+        "name": "Delta Force 680+70",
+        "price": 98609,
+        "type": "fixed"
+      },
+      "delta_force_1280+200": {
+        "name": "Delta Force 1280+200",
+        "price": 196270,
+        "type": "fixed"
+      },
+      "delta_force_1680+300": {
+        "name": "Delta Force 1680+300",
+        "price": 242296,
+        "type": "fixed"
+      },
+      "delta_force_3200+670": {
+        "name": "Delta Force 3200+670",
+        "price": 481459,
+        "type": "fixed"
+      }
+    }
+  }
+}
