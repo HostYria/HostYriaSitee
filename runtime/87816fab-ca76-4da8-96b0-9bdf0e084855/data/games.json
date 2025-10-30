@@ -225,5 +225,16 @@
         "type": "fixed"
       }
     }
+  },
+  "mario": {
+    "name": "Mario",
+    "type": "game",
+    "categories": {
+      "120_coin_🪙": {
+        "name": "120 coin 🪙",
+        "price": 1200,
+        "type": "fixed"
+      }
+    }
   }
 }
