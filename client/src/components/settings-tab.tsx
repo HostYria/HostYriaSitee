@@ -168,6 +168,8 @@ export function SettingsTab({
       return await apiRequest("DELETE", `/api/repositories/${repository.id}`, {});
     },
     onSuccess: () => {
+      // تحديث قائمة المستودعات فوراً
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories"] });
       toast({
         title: "Repository deleted",
         description: "Your repository has been deleted successfully",
