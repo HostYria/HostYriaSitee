@@ -179,9 +179,41 @@ export default function RepositoryDetail() {
         </Card>
       </div>
 
+      <div className="space-y-4">
+        <div className="flex gap-2 w-full">
+          <Button
+            onClick={() => startMutation.mutate()}
+            disabled={startMutation.isPending || isRunning}
+            data-testid="button-start-repository"
+            variant={canStart ? "default" : "outline"}
+            className="flex-1"
+          >
+            {startMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-2" />
+            )}
+            Start
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => stopMutation.mutate()}
+            disabled={stopMutation.isPending || !isRunning}
+            data-testid="button-stop-repository"
+            className="flex-1"
+          >
+            {stopMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Square className="h-4 w-4 mr-2" />
+            )}
+            Stop
+          </Button>
+        </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between border-b">
-          <TabsList>
+        <div className="border-b">
+          <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="files" data-testid="tab-files">
               Files
             </TabsTrigger>
@@ -195,36 +227,6 @@ export default function RepositoryDetail() {
               Settings
             </TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 pb-px">
-            <Button
-              onClick={() => startMutation.mutate()}
-              disabled={startMutation.isPending || isRunning}
-              data-testid="button-start-repository"
-              size="sm"
-              variant={canStart ? "default" : "outline"}
-            >
-              {startMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Play className="h-4 w-4 mr-2" />
-              )}
-              Start
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => stopMutation.mutate()}
-              disabled={stopMutation.isPending || !isRunning}
-              data-testid="button-stop-repository"
-              size="sm"
-            >
-              {stopMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Square className="h-4 w-4 mr-2" />
-              )}
-              Stop
-            </Button>
-          </div>
         </div>
 
         <TabsContent value="files" className="mt-6">
@@ -247,6 +249,7 @@ export default function RepositoryDetail() {
           />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }

@@ -303,84 +303,90 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Files</h2>
-          {currentPath && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                const parts = currentPath.split('/');
-                parts.pop();
-                setCurrentPath(parts.join('/'));
-              }}
-            >
-              ← Back
-            </Button>
-          )}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold">Files</h2>
+            {currentPath && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  const parts = currentPath.split('/');
+                  parts.pop();
+                  setCurrentPath(parts.join('/'));
+                }}
+              >
+                ← Back
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-          <input
-            ref={zipInputRef}
-            type="file"
-            accept=".zip"
-            className="hidden"
-            onChange={handleZipUpload}
-          />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button data-testid="button-upload-options">
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <FileText className="h-4 w-4 mr-2" />
-                Upload Files
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => zipInputRef.current?.click()}>
-                <FileArchive className="h-4 w-4 mr-2" />
-                Upload ZIP
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <input
+          ref={zipInputRef}
+          type="file"
+          accept=".zip"
+          className="hidden"
+          onChange={handleZipUpload}
+        />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <FilePlus className="h-4 w-4 mr-2" />
-                New
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => handleOpenCreate("file")}>
-                <FileCode className="h-4 w-4 mr-2" />
-                New File
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleOpenCreate("folder")}>
-                <FolderPlus className="h-4 w-4 mr-2" />
-                New Folder
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button data-testid="button-upload-options" className="flex-1 sm:flex-none">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Upload Files
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => zipInputRef.current?.click()}>
+                  <FileArchive className="h-4 w-4 mr-2" />
+                  Upload ZIP
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex-1 sm:flex-none">
+                  <FilePlus className="h-4 w-4 mr-2" />
+                  New
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleOpenCreate("file")}>
+                  <FileCode className="h-4 w-4 mr-2" />
+                  New File
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleOpenCreate("folder")}>
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  New Folder
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <Button
             variant="outline"
             onClick={() => syncFilesMutation.mutate()}
             disabled={syncFilesMutation.isPending}
             title="Sync runtime files to database"
+            className="w-full"
           >
             {syncFilesMutation.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
