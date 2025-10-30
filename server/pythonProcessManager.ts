@@ -215,12 +215,38 @@ class PythonProcessManager {
       persistent: true,
       ignoreInitial: true,
       awaitWriteFinish: {
-        stabilityThreshold: 500,
-        pollInterval: 100
+        stabilityThreshold: 200, // تقليل وقت الانتظار لتحديث أسرع
+        pollInterval: 50
       }
     });
 
     watcher
+      .on('addDir', async (dirPath: string) => {
+        try {
+          const relativePath = path.relative(workDir, dirPath);
+          if (!relativePath) return; // تجاهل المجلد الجذر
+          
+          const pathParts = relativePath.split(path.sep);
+          const folderName = pathParts.pop() || '';
+          const parentDir = pathParts.join('/');
+
+          const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
+          if (!existing) {
+            await storage.createFile(repositoryId, {
+              name: folderName,
+              path: parentDir,
+              content: '',
+              size: 0,
+              isDirectory: true
+            });
+            console.log(`[File Sync] New folder detected and saved: ${relativePath}`);
+            this.emitLog(repositoryId, `📁 تم إنشاء المجلد تلقائيًا: ${relativePath}\n`);
+            this.emitFileSync(repositoryId, 'folder_created');
+          }
+        } catch (error: any) {
+          console.error('Error syncing new folder:', error);
+        }
+      })
       .on('add', async (filePath: string) => {
         try {
           const relativePath = path.relative(workDir, filePath);
@@ -242,6 +268,7 @@ class PythonProcessManager {
             });
             console.log(`[File Sync] New file detected and saved: ${relativePath}`);
             this.emitLog(repositoryId, `✅ تم حفظ الملف الجديد تلقائيًا: ${relativePath}\n`);
+            this.emitFileSync(repositoryId, 'file_created');
           }
         } catch (error: any) {
           console.error('Error syncing new file:', error);
@@ -258,6 +285,7 @@ class PythonProcessManager {
             await storage.updateFile(existing.id, repositoryId, { content, size });
             console.log(`[File Sync] File change detected and saved: ${relativePath}`);
             this.emitLog(repositoryId, `💾 تم حفظ التغييرات تلقائيًا: ${relativePath}\n`);
+            this.emitFileSync(repositoryId, 'file_updated');
           }
         } catch (error: any) {
           console.error('Error syncing file change:', error);
@@ -271,13 +299,35 @@ class PythonProcessManager {
             await storage.deleteFile(existing.id, repositoryId);
             console.log(`[File Sync] File deletion detected and synced: ${relativePath}`);
             this.emitLog(repositoryId, `🗑️ تم حذف الملف تلقائيًا: ${relativePath}\n`);
+            this.emitFileSync(repositoryId, 'file_deleted');
           }
         } catch (error: any) {
           console.error('Error syncing file deletion:', error);
         }
+      })
+      .on('unlinkDir', async (dirPath: string) => {
+        try {
+          const relativePath = path.relative(workDir, dirPath);
+          const existing = await storage.getFileByPath(repositoryId, relativePath.replace(/\\/g, '/'));
+          if (existing) {
+            await storage.deleteFile(existing.id, repositoryId);
+            console.log(`[File Sync] Folder deletion detected and synced: ${relativePath}`);
+            this.emitLog(repositoryId, `🗑️ تم حذف المجلد تلقائيًا: ${relativePath}\n`);
+            this.emitFileSync(repositoryId, 'folder_deleted');
+          }
+        } catch (error: any) {
+          console.error('Error syncing folder deletion:', error);
+        }
       });
 
     this.fileWatchers.set(repositoryId, watcher);
+  }
+
+  private emitFileSync(repositoryId: string, action: string): void {
+    const callbacks = this.logCallbacks.get(repositoryId);
+    if (callbacks) {
+      callbacks.forEach((callback) => callback(`__FILE_SYNC__:${action}`));
+    }
   }
 
   stopRepository(repositoryId: string): void {

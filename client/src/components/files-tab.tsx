@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -59,6 +59,38 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // إضافة مستمع WebSocket لتحديثات الملفات الفورية
+  useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => {
+      console.log('WebSocket connected, subscribing to repository:', repositoryId);
+      ws.send(JSON.stringify({ type: 'subscribe', repositoryId }));
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'log' && data.message?.includes('__FILE_SYNC__:')) {
+          // تحديث قائمة الملفات فوراً عند اكتشاف تغيير
+          queryClient.invalidateQueries({ queryKey: ["/api/repositories", repositoryId, "files"] });
+        }
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket disconnected');
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [repositoryId]);
 
   const createForm = useForm<InsertFile>({
     resolver: zodResolver(insertFileSchema),
