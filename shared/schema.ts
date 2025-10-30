@@ -93,7 +93,6 @@ export const repositories = pgTable("repositories", {
   description: text("description"),
   mainFile: varchar("main_file", { length: 255 }),
   pythonVersion: varchar("python_version", { length: 20 }).notNull().default("3.11"),
-  autoInstallRequirements: boolean("auto_install_requirements").notNull().default(false),
   autoInstallFromRequirements: boolean("auto_install_from_requirements").notNull().default(false),
   status: varchar("status", { length: 20 }).notNull().default("stopped"),
   createdAt: timestamp("created_at").defaultNow(),

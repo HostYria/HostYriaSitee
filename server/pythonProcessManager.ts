@@ -33,7 +33,7 @@ class PythonProcessManager {
       fs.mkdirSync(workDir, { recursive: true });
     }
 
-    this.emitLog(repositoryId, `📁 Preparing files in: ${workDir}`);
+    this.emitLog(repositoryId, `📁 Preparing files in: ${workDir}\n`);
 
     const files = await storage.getFiles(repositoryId);
     
@@ -61,19 +61,19 @@ class PythonProcessManager {
       }
       
       fs.writeFileSync(filePath, file.content, "utf-8");
-      this.emitLog(repositoryId, `  ✓ Written: ${relativePath}`);
+      this.emitLog(repositoryId, `  ✓ Written: ${relativePath}\n`);
     }
 
     // Verify main file exists
     const mainFilePath = path.join(workDir, repository.mainFile);
     if (!fs.existsSync(mainFilePath)) {
       const errorMsg = `Main file not found: ${repository.mainFile}`;
-      this.emitLog(repositoryId, `❌ ${errorMsg}`);
+      this.emitLog(repositoryId, `❌ ${errorMsg}\n`);
       await storage.updateRepositoryById(repositoryId, { status: "error" });
       throw new Error(errorMsg);
     }
     
-    this.emitLog(repositoryId, `✓ Main file found: ${repository.mainFile}`);
+    this.emitLog(repositoryId, `✓ Main file found: ${repository.mainFile}\n`);
 
     const envVars = await storage.getEnvironmentVariables(repositoryId);
     const env = { ...process.env };
@@ -84,10 +84,10 @@ class PythonProcessManager {
     // Check if requirements.txt exists and handle auto-installation
     const requirementsFile = files.find((f) => f.name === "requirements.txt" && !f.isDirectory);
     if (requirementsFile && requirementsFile.content.trim()) {
-      this.emitLog(repositoryId, "ℹ️ requirements.txt detected.");
+      this.emitLog(repositoryId, "ℹ️ requirements.txt detected.\n");
       
       if (repository.autoInstallFromRequirements) {
-        this.emitLog(repositoryId, "📦 Auto-installing packages from requirements.txt...");
+        this.emitLog(repositoryId, "📦 Auto-installing packages from requirements.txt...\n");
         
         try {
           const requirementsPath = path.join(workDir, "requirements.txt");
@@ -126,20 +126,20 @@ class PythonProcessManager {
             });
           });
 
-          this.emitLog(repositoryId, "✅ Packages installed successfully from requirements.txt");
+          this.emitLog(repositoryId, "\n✅ Packages installed successfully from requirements.txt\n");
         } catch (error: any) {
-          this.emitLog(repositoryId, `❌ Failed to install packages: ${error.message}`);
-          this.emitLog(repositoryId, "ℹ️ You can install packages manually from the Terminal tab");
+          this.emitLog(repositoryId, `\n❌ Failed to install packages: ${error.message}\n`);
+          this.emitLog(repositoryId, "ℹ️ You can install packages manually from the Terminal tab\n");
         }
       } else {
-        this.emitLog(repositoryId, "ℹ️ Auto-install from requirements.txt is disabled.");
-        this.emitLog(repositoryId, "ℹ️ Please install packages manually using the Terminal tab:");
-        this.emitLog(repositoryId, "ℹ️ Run: pip install --user -r requirements.txt");
+        this.emitLog(repositoryId, "ℹ️ Auto-install from requirements.txt is disabled.\n");
+        this.emitLog(repositoryId, "ℹ️ Please install packages manually using the Terminal tab:\n");
+        this.emitLog(repositoryId, "ℹ️ Run: pip install --user -r requirements.txt\n");
       }
     }
 
-    this.emitLog(repositoryId, `🚀 Starting ${repository.mainFile}...`);
-    this.emitLog(repositoryId, `Working directory: ${workDir}`);
+    this.emitLog(repositoryId, `\n🚀 Starting ${repository.mainFile}...\n`);
+    this.emitLog(repositoryId, `Working directory: ${workDir}\n`);
 
     const childProcess = spawn("python3", [repository.mainFile], {
       cwd: workDir,
@@ -149,12 +149,12 @@ class PythonProcessManager {
 
     if (!childProcess.pid) {
       const errorMsg = "Failed to spawn Python process";
-      this.emitLog(repositoryId, `❌ ${errorMsg}`);
+      this.emitLog(repositoryId, `❌ ${errorMsg}\n`);
       await storage.updateRepositoryById(repositoryId, { status: "error" });
       throw new Error(errorMsg);
     }
 
-    this.emitLog(repositoryId, `✓ Process started with PID: ${childProcess.pid}`);
+    this.emitLog(repositoryId, `✓ Process started with PID: ${childProcess.pid}\n`);
 
     this.processes.set(repositoryId, {
       process: childProcess,
@@ -189,7 +189,7 @@ class PythonProcessManager {
     });
 
     await storage.updateRepositoryById(repositoryId, { status: "running" });
-    this.emitLog(repositoryId, "✓ Application is now running");
+    this.emitLog(repositoryId, "\n✓ Application is now running\n\n--- Application Output ---\n");
   }
 
   stopRepository(repositoryId: string): void {
