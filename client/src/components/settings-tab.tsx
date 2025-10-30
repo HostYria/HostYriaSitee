@@ -41,7 +41,7 @@ import type {
   EnvironmentVariable,
   InsertEnvironmentVariable,
 } from "@shared/schema";
-import { Save, Trash2, Plus, Loader2, Download } from "lucide-react";
+import { Save, Trash2, Plus, Loader2, Download, Play, Square } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
@@ -116,6 +116,47 @@ export function SettingsTab({
     onError: (error: Error) => {
       toast({
         title: "Error updating environment variables",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const startMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/repositories/${repository.id}/start`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories", repository.id] });
+      toast({
+        title: "Repository started",
+        description: "Your application is now running",
+      });
+    },
+    onError: (error: Error) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories", repository.id] });
+      toast({
+        title: "Error starting repository",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const stopMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/repositories/${repository.id}/stop`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories", repository.id] });
+      toast({
+        title: "Repository stopped",
+        description: "Your application has been stopped",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error stopping repository",
         description: error.message,
         variant: "destructive",
       });
@@ -200,6 +241,8 @@ export function SettingsTab({
     }
   };
 
+  const isRunning = repository.status === "running";
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -217,6 +260,59 @@ export function SettingsTab({
         <p className="text-sm text-muted-foreground">
           تحميل جميع ملفات المشروع كملف ZIP مضغوط على الهاتف أو الكمبيوتر
         </p>
+      </Card>
+
+      <Card className="p-6">
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold">Helper Buttons</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            أزرار احتياطية لإدارة المستودع في حالة حدوث خطأ أو عدم ظهور الأزرار في الصفحة الرئيسية
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => startMutation.mutate()}
+            disabled={startMutation.isPending}
+            data-testid="button-helper-start"
+            variant={isRunning ? "outline" : "default"}
+          >
+            {startMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4 mr-2" />
+            )}
+            Start Repository
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => stopMutation.mutate()}
+            disabled={stopMutation.isPending}
+            data-testid="button-helper-stop"
+          >
+            {stopMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Square className="h-4 w-4 mr-2" />
+            )}
+            Stop Repository
+          </Button>
+          <div className="flex items-center gap-2 ml-auto">
+            <div
+              className={`h-3 w-3 rounded-full ${
+                isRunning
+                  ? "bg-status-online animate-pulse"
+                  : repository.status === "error"
+                  ? "bg-status-busy"
+                  : repository.status === "completed"
+                  ? "bg-green-500"
+                  : "bg-status-offline"
+              }`}
+            />
+            <span className="text-sm font-medium capitalize">
+              {repository.status}
+            </span>
+          </div>
+        </div>
       </Card>
 
       <Card className="p-6">
