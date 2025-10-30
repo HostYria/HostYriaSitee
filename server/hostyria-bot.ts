@@ -9,13 +9,21 @@ const BOT_TOKEN = process.env.HOSTYRIA_BOT_TOKEN;
 const ENABLE_BOT = process.env.ENABLE_TELEGRAM_BOT !== 'false';
 
 if (!BOT_TOKEN) {
-  console.error('HOSTYRIA_BOT_TOKEN environment variable is not set');
-  process.exit(1);
+  if (ENABLE_BOT) {
+    console.error('⚠️  HOSTYRIA_BOT_TOKEN environment variable is not set');
+    console.error('   Set ENABLE_TELEGRAM_BOT=false to run without the bot');
+    process.exit(1);
+  } else {
+    console.log('ℹ️  Telegram Bot is disabled - HOSTYRIA_BOT_TOKEN not required');
+  }
 }
 
-const bot = new TelegramBot(BOT_TOKEN, { polling: ENABLE_BOT });
+const bot = BOT_TOKEN ? new TelegramBot(BOT_TOKEN, { polling: ENABLE_BOT }) : null;
 
-if (!ENABLE_BOT) {
+if (!bot) {
+  console.log('⚠️  Telegram Bot is NOT initialized (no token provided)');
+  console.log('   The application will run without bot functionality.');
+} else if (!ENABLE_BOT) {
   console.log('⚠️  Telegram Bot polling is DISABLED (ENABLE_TELEGRAM_BOT=false)');
   console.log('   The bot will not respond to messages until enabled.');
 }
@@ -274,6 +282,7 @@ async function showRepositoryDetails(chatId: number, repoId: string) {
 }
 
 // Handle /start command
+if (bot) {
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
   messageIds.set(chatId, msg.message_id);
@@ -438,10 +447,14 @@ bot.on('message', async (msg) => {
   }
 });
 
-if (ENABLE_BOT) {
+}
+
+if (bot && ENABLE_BOT) {
   console.log('HostYria Bot started successfully! 🚀');
-} else {
+} else if (bot) {
   console.log('HostYria Bot initialized (polling disabled)');
+} else {
+  console.log('HostYria Bot not initialized - running without bot');
 }
 
 export default bot;
