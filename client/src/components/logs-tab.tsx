@@ -138,7 +138,7 @@ export function LogsTab({ repositoryId, isRunning }: LogsTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="space-y-3">
         <div className="flex items-center gap-4">
           <h2 className="text-xl font-semibold">Logs</h2>
           {isRunning && (
@@ -148,7 +148,7 @@ export function LogsTab({ repositoryId, isRunning }: LogsTabProps) {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="flex items-center gap-2">
             <Switch
               id="auto-scroll"
@@ -160,26 +160,30 @@ export function LogsTab({ repositoryId, isRunning }: LogsTabProps) {
               Auto-scroll
             </Label>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={downloadLogs}
-            disabled={logs.length === 0}
-            data-testid="button-download-logs"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Download
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearLogs}
-            disabled={logs.length === 0}
-            data-testid="button-clear-logs"
-          >
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadLogs}
+              disabled={logs.length === 0}
+              data-testid="button-download-logs"
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearLogs}
+              disabled={logs.length === 0}
+              data-testid="button-clear-logs"
+              className="flex-1 sm:flex-none"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear
+            </Button>
+          </div>
         </div>
       </div>
 

@@ -246,20 +246,21 @@ export function SettingsTab({
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="space-y-3">
           <h2 className="text-xl font-semibold">Download Project</h2>
+          <p className="text-sm text-muted-foreground">
+            تحميل جميع ملفات المشروع كملف ZIP مضغوط على الهاتف أو الكمبيوتر
+          </p>
           <Button
             onClick={handleDownloadAllFiles}
             disabled={files.length === 0}
             data-testid="button-download-all-files"
+            className="w-full sm:w-auto"
           >
             <Download className="h-4 w-4 mr-2" />
             Download All Files
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">
-          تحميل جميع ملفات المشروع كملف ZIP مضغوط على الهاتف أو الكمبيوتر
-        </p>
       </Card>
 
       <Card className="p-6">
@@ -269,34 +270,38 @@ export function SettingsTab({
             أزرار احتياطية لإدارة المستودع في حالة حدوث خطأ أو عدم ظهور الأزرار في الصفحة الرئيسية
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => startMutation.mutate()}
-            disabled={startMutation.isPending}
-            data-testid="button-helper-start"
-            variant={isRunning ? "outline" : "default"}
-          >
-            {startMutation.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Play className="h-4 w-4 mr-2" />
-            )}
-            Start Repository
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => stopMutation.mutate()}
-            disabled={stopMutation.isPending}
-            data-testid="button-helper-stop"
-          >
-            {stopMutation.isPending ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Square className="h-4 w-4 mr-2" />
-            )}
-            Stop Repository
-          </Button>
-          <div className="flex items-center gap-2 ml-auto">
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <Button
+              onClick={() => startMutation.mutate()}
+              disabled={startMutation.isPending}
+              data-testid="button-helper-start"
+              variant={isRunning ? "outline" : "default"}
+              className="flex-1"
+            >
+              {startMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4 mr-2" />
+              )}
+              Start
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => stopMutation.mutate()}
+              disabled={stopMutation.isPending}
+              data-testid="button-helper-stop"
+              className="flex-1"
+            >
+              {stopMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Square className="h-4 w-4 mr-2" />
+              )}
+              Stop
+            </Button>
+          </div>
+          <div className="flex items-center justify-center gap-2 p-2 bg-muted rounded-md">
             <div
               className={`h-3 w-3 rounded-full ${
                 isRunning
@@ -422,7 +427,7 @@ export function SettingsTab({
       </Card>
 
       <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="space-y-3 mb-4">
           <div>
             <h2 className="text-xl font-semibold">Environment Variables</h2>
             <p className="text-sm text-muted-foreground mt-1">
@@ -434,6 +439,7 @@ export function SettingsTab({
             size="sm"
             onClick={addEnvVar}
             data-testid="button-add-env-var"
+            className="w-full sm:w-auto"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Variable
