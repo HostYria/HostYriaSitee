@@ -41,6 +41,7 @@ export interface IStorage {
 
   getFiles(repositoryId: string): Promise<File[]>;
   getFile(id: string, repositoryId: string): Promise<File | undefined>;
+  getFileByPath(repositoryId: string, fullPath: string): Promise<File | undefined>;
   createFile(repositoryId: string, file: InsertFile): Promise<File>;
   updateFile(fileId: string, repositoryId: string, updates: { content?: string; size?: number }): Promise<File | null>;
   deleteFile(fileId: string, repositoryId: string): Promise<boolean>;
@@ -170,6 +171,24 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(files)
       .where(and(eq(files.id, id), eq(files.repositoryId, repositoryId)));
+    return file;
+  }
+
+  async getFileByPath(repositoryId: string, fullPath: string): Promise<File | undefined> {
+    const pathParts = fullPath.split('/');
+    const fileName = pathParts.pop() || '';
+    const filePath = pathParts.join('/');
+
+    const [file] = await db
+      .select()
+      .from(files)
+      .where(
+        and(
+          eq(files.repositoryId, repositoryId),
+          eq(files.name, fileName),
+          eq(files.path, filePath)
+        )
+      );
     return file;
   }
 

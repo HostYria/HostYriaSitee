@@ -41,7 +41,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertFileSchema, type File as FileType, type InsertFile } from "@shared/schema";
-import { Upload, FileCode, FileJson, FileText, Trash2, Loader2, FolderPlus, ChevronDown, Folder, FileArchive, FilePlus, Edit, Download } from "lucide-react";
+import { Upload, FileCode, FileJson, FileText, Trash2, Loader2, FolderPlus, ChevronDown, Folder, FileArchive, FilePlus, Edit, Download, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FilesTabProps {
@@ -190,6 +190,26 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
     onError: (error: Error) => {
       toast({
         title: "Error uploading ZIP",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const syncFilesMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/repositories/${repositoryId}/sync-files`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/repositories", repositoryId, "files"] });
+      toast({
+        title: "Files synced",
+        description: "Runtime files have been synced to database successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error syncing files",
         description: error.message,
         variant: "destructive",
       });
@@ -355,6 +375,20 @@ export function FilesTab({ repositoryId, files }: FilesTabProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          <Button
+            variant="outline"
+            onClick={() => syncFilesMutation.mutate()}
+            disabled={syncFilesMutation.isPending}
+            title="Sync runtime files to database"
+          >
+            {syncFilesMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Sync Files
+          </Button>
         </div>
       </div>
 

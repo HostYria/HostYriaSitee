@@ -265,10 +265,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateRepositoryById(req.params.id, { status: "stopped" });
       }
 
+      // Sync runtime files to database after stopping
+      await pythonProcessManager.syncRuntimeFilesToDatabase(req.params.id);
+
       res.json({ message: "Repository stopped successfully" });
     } catch (error: any) {
       console.error("Error stopping repository:", error);
       res.status(400).json({ message: error.message || "Failed to stop repository" });
+    }
+  });
+
+  app.post("/api/repositories/:id/sync-files", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.session.userId;
+      const repo = await storage.getRepository(req.params.id, userId);
+
+      if (!repo) {
+        return res.status(404).json({ message: "Repository not found" });
+      }
+
+      await pythonProcessManager.syncRuntimeFilesToDatabase(req.params.id);
+      res.json({ message: "Files synced successfully" });
+    } catch (error: any) {
+      console.error("Error syncing files:", error);
+      res.status(400).json({ message: error.message || "Failed to sync files" });
     }
   });
 

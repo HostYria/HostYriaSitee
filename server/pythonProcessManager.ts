@@ -242,6 +242,62 @@ class PythonProcessManager {
     }
   }
 
+  async syncRuntimeFilesToDatabase(repositoryId: string): Promise<void> {
+    const workDir = path.join(process.cwd(), "runtime", repositoryId);
+    
+    if (!fs.existsSync(workDir)) {
+      return;
+    }
+
+    const scanDirectory = async (dirPath: string, relativePath: string = ""): Promise<void> => {
+      const items = fs.readdirSync(dirPath, { withFileTypes: true });
+
+      for (const item of items) {
+        const itemPath = path.join(dirPath, item.name);
+        const itemRelativePath = relativePath ? `${relativePath}/${item.name}` : item.name;
+
+        if (item.isDirectory()) {
+          // Check if folder exists in DB
+          const existingFolder = await storage.getFileByPath(repositoryId, itemRelativePath);
+          if (!existingFolder) {
+            await storage.createFile(repositoryId, {
+              name: item.name,
+              path: relativePath,
+              content: "",
+              size: 0,
+              isDirectory: true,
+            });
+          }
+          // Recursively scan subdirectories
+          await scanDirectory(itemPath, itemRelativePath);
+        } else {
+          // Check if file exists in DB
+          const existingFile = await storage.getFileByPath(repositoryId, itemRelativePath);
+          const content = fs.readFileSync(itemPath, "utf-8");
+          const size = Buffer.byteLength(content, "utf-8");
+
+          if (existingFile) {
+            // Update if content changed
+            if (existingFile.content !== content) {
+              await storage.updateFile(existingFile.id, repositoryId, { content, size });
+            }
+          } else {
+            // Create new file
+            await storage.createFile(repositoryId, {
+              name: item.name,
+              path: relativePath,
+              content,
+              size,
+              isDirectory: false,
+            });
+          }
+        }
+      }
+    };
+
+    await scanDirectory(workDir);
+  }
+
   async executeCommand(repositoryId: string, command: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const workDir = path.join(process.cwd(), "runtime", repositoryId);
