@@ -94,7 +94,8 @@ class PythonProcessManager {
           
           // Install packages using pip
           const installOutput = await new Promise<string>((resolve, reject) => {
-            const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", "-r", requirementsPath], {
+            // Use --user flag and --break-system-packages for Render/externally-managed environments
+            const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", "--break-system-packages", "-r", requirementsPath], {
               cwd: workDir,
             });
 
@@ -294,7 +295,7 @@ class PythonProcessManager {
         fs.mkdirSync(workDir, { recursive: true });
       }
 
-      const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", packageName], {
+      const pipInstall = spawn("python3", ["-m", "pip", "install", "--user", "--break-system-packages", packageName], {
         cwd: workDir,
       });
 
@@ -327,12 +328,8 @@ class PythonProcessManager {
     return new Promise((resolve, reject) => {
       const workDir = path.join(process.cwd(), "runtime", repositoryId);
 
-      // Use virtual environment pip if it exists
-      const venvPipPath = path.join(workDir, ".venv", "bin", "pip");
-      const pipCommand = fs.existsSync(venvPipPath) ? venvPipPath : "python3";
-      const pipArgs = fs.existsSync(venvPipPath) ? ["uninstall", "-y", packageName] : ["-m", "pip", "uninstall", "-y", packageName];
-
-      const pipUninstall = spawn(pipCommand, pipArgs, {
+      // Use --break-system-packages for Render/externally-managed environments
+      const pipUninstall = spawn("python3", ["-m", "pip", "uninstall", "-y", "--break-system-packages", packageName], {
         cwd: workDir,
       });
 
